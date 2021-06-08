@@ -5,12 +5,22 @@ import torch
 import torchvision.transforms as transforms
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model_name = "model_1"
+project_name = "project-1-1"
+config_1_1 = {
+    'epochs': 20,
+    'batch_size': 64,
+    'learning_rate': 1e-3,
+    'optimizer': 'adam',
+    'conv_dim': [16, 16, 16, 32, 32, 32, 48, 48, 64],
+    'fc_dim': [1024],
+    'batch_norm': True,
+    'step_lr': [True, 1, 0.8],
+}
+in_channels = 3
 
 
 if __name__=="__main__":
-    config = m.config_1_1
-    in_channels = 3
-
     # Define data transforms
     test_transform = transforms.Compose([
         transforms.Resize((128, 128)), 
@@ -24,13 +34,13 @@ if __name__=="__main__":
     ])
 
     # Load data
-    train_loader, test_loader = d.load_hotdog(train_transform, test_transform, config)
+    train_loader, test_loader = d.load_hotdog(train_transform, test_transform, config_1_1)
 
     # Instantiate model
-    model = m.StandardCNN(3, config).to(device)
+    model = m.StandardCNN(3, config_1_1).to(device)
 
     # train model
-    out_dict = m.train(model, config, m.config.project_name, train_loader, test_loader)
+    out_dict = m.train(model, config_1_1, project_name, train_loader, test_loader)
 
     # pick a single image
     images, labels = next(iter(test_loader))
