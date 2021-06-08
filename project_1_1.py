@@ -8,7 +8,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 if __name__=="__main__":
-    config = m.config
+    config = m.config_1_1
     in_channels = 3
 
     # Define data transforms

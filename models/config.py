@@ -1,6 +1,6 @@
 model_name = "model_1"
 project_name = "project-1-1"
-config = {
+config_1_1 = {
     'epochs': 20,
     'batch_size': 64,
     'learning_rate': 1e-3,
