@@ -2,7 +2,7 @@ import torch.nn as nn
 
 
 class StandardCNN(nn.Module):
-    def __init__(self, in_channels, config):
+    def __init__(self, config):
         super(StandardCNN, self).__init__()
         
         conv_dim = config['conv_dim']
@@ -10,7 +10,7 @@ class StandardCNN(nn.Module):
 
         # Create list of conv layers
         n_pools = 0
-        conv_layers = [nn.Conv2d(in_channels, conv_dim[0], kernel_size=3, padding=1), nn.ReLU()]
+        conv_layers = [nn.Conv2d(3, conv_dim[0], kernel_size=3, padding=1), nn.ReLU()]
         for i in range(1, len(conv_dim)):
             if conv_dim[i-1] != conv_dim[i]:
                 conv_layers.append(
