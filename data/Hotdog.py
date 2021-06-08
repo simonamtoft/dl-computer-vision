@@ -30,9 +30,9 @@ class Hotdog_NotHotdog(torch.utils.data.Dataset):
         return X, y
 
 
-def load_hotdog(train_transform, test_transform, config, path='./', num_workers=2):
-    trainset = Hotdog_NotHotdog(data_path=path, train=True, transform=train_transform)
+def load_hotdog(train_transform, test_transform, config, num_workers=2):
+    trainset = Hotdog_NotHotdog(train=True, transform=train_transform)
     train_loader = DataLoader(trainset, batch_size=config["batch_size"], shuffle=True, num_workers=num_workers)
-    testset = Hotdog_NotHotdog(data_path=path, train=False, transform=test_transform)
+    testset = Hotdog_NotHotdog(train=False, transform=test_transform)
     test_loader = DataLoader(testset, batch_size=config["batch_size"], shuffle=False, num_workers=num_workers)
     return train_loader, test_loader
