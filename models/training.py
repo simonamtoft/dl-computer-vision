@@ -35,7 +35,7 @@ def train(model, config, project_name, train_loader, test_loader):
             step_size=config['step_lr'][1], 
             gamma=config['step_lr'][2]
         )
-    
+
     # do training
     for _ in tqdm(range(config["epochs"]), unit='epoch'):
         model.train()
@@ -101,7 +101,4 @@ def train(model, config, project_name, train_loader, test_loader):
             "train_acc": train_acc,
             "test_acc": test_acc,
         })
-
-        # print(f"Loss train: {train_loss:.3f}\t test: {test_loss:.3f}\t",
-        #       f"Accuracy train: {train_acc*100:.1f}%\t test: {test_acc*100:.1f}%")
     return out_dict
