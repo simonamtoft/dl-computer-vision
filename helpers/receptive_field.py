@@ -2,10 +2,7 @@ import numpy as np
 
 
 def compute_receptive_field_(conv_dim, maxpool_idx, point):
-    """
-    Computes respective field indices of a point in the input image
-    If conv_dim is from config, then conv_dim=config['conv_dim'][1:]
-    """
+    """Computes respective field indices of a point in the input image"""
     res_range = np.array([[point[0], point[0]], [point[1], point[1]]])
     for i in range(len(conv_dim)-1, -1, -1):
         kern = conv_dim[i][1]
@@ -14,7 +11,12 @@ def compute_receptive_field_(conv_dim, maxpool_idx, point):
         if i in maxpool_idx:
             res_range *= 2
             res_range += np.array([[0, 1], [0, 1]])
-    return res_range
+
+    width = res_range[0, 1] - res_range[0, 0]
+    height = res_range[1, 1] - res_range[1, 0]
+    out = np.array([height, res_range[0, 0], res_range[1, 0], width])
+    
+    return res_range, out
 
 
 def compute_receptive_field(config, point):
@@ -31,4 +33,9 @@ if __name__=="__main__":
     point = [0, 0]
     conv_dim = [[-1, 3], [-1, 3], [-1, 1], [-1, 1]] 
     max_idx = [1]
-    compute_receptive_field_(point, conv_dim, max_idx)
+    config = {
+        'conv_dim': conv_dim,
+        'maxpool_idx': max_idx
+    }
+    print(compute_receptive_field_(conv_dim, max_idx, point))
+    print(compute_receptive_field(config, point))
