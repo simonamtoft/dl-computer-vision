@@ -22,7 +22,7 @@ class PureCNN(nn.Module):
             nn.ReLU(),
             nn.Conv2d(config['conv_dim'][3], config['conv_dim'][4], kernel_size=3, padding=1),
             nn.ReLU(),
-            nn.Conv2d(config['conv_dim'][4], out_channels, kernel_size=3, padding=1),
+            nn.Conv2d(config['conv_dim'][4], out_channels, kernel_size=3, padding=1)
         ])
     
     def forward(self, x):
