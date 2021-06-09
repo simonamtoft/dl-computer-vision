@@ -8,22 +8,29 @@ class PureCNN(nn.Module):
         in_channels = 3
         out_channels = 11
 
+        conv_dims = [in_channels, *config['conv_dim'], out_channels]
+
+        # Create list of conv layers
+        n_pools = 0
+        conv_layers = []
+        for i in range(1, len(conv_dims)):
+            if i in config['maxpool_idx']:
+                conv_layers.append(
+                    nn.MaxPool2d(kernel_size=2, stride=2)
+                )
+                n_pools += 1
+
+            conv_layers.append(
+                nn.Conv2d(conv_dims[i-1], conv_dims[i], kernel_size=3, padding=1)
+            )
+
+            if config['batch_norm']:
+                conv_layers.append(nn.BatchNorm2d(conv_dims[i]))
+
+            conv_layers.append(nn.ReLU())
+
         # Define convolutional part
-        self.conv = nn.Sequential([
-            nn.Conv2d(in_channels, config['conv_dim'][0], kernel_size=3, padding=1),
-            nn.MaxPool2d(kernel_size=2),
-            nn.ReLU(),
-            nn.Conv2d(config['conv_dim'][0], config['conv_dim'][1], kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(config['conv_dim'][1], config['conv_dim'][2], kernel_size=3, padding=1),
-            nn.MaxPool2d(kernel_size=2),
-            nn.ReLU(),
-            nn.Conv2d(config['conv_dim'][2], config['conv_dim'][3], kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(config['conv_dim'][3], config['conv_dim'][4], kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(config['conv_dim'][4], out_channels, kernel_size=3, padding=1)
-        ])
+        self.conv = nn.Sequential(*conv_layers)
     
     def forward(self, x):
         return self.conv(x)
