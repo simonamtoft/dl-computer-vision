@@ -1,6 +1,32 @@
 import torch.nn as nn
 
 
+class PureCNN(nn.Module):
+    def __init__(self, config):
+        super(PureCNN, self).__init__()
+        
+        in_channels = 3
+        out_channels = 11
+
+        # Define convolutional part
+        self.conv = nn.Sequential([
+            nn.Conv2d(in_channels, config['conv_dim'][0], kernel_size=3, padding=1),
+            nn.ReLU,
+            nn.Conv2d(config['conv_dim'][0], config['conv_dim'][1], kernel_size=3, padding=1),
+            nn.ReLU,
+            nn.Conv2d(config['conv_dim'][1], config['conv_dim'][2], kernel_size=3, padding=1),
+            nn.ReLU,
+            nn.Conv2d(config['conv_dim'][2], config['conv_dim'][3], kernel_size=3, padding=1),
+            nn.ReLU,
+            nn.Conv2d(config['conv_dim'][3], config['conv_dim'][4], kernel_size=3, padding=1),
+            nn.ReLU,
+            nn.Conv2d(config['conv_dim'][4], out_channels, kernel_size=3, padding=1),
+        ])
+    
+    def forward(self, x):
+        return self.conv(x)
+
+
 class StandardCNN(nn.Module):
     def __init__(self, config):
         super(StandardCNN, self).__init__()

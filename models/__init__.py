@@ -1,2 +1,2 @@
-from .CNN import StandardCNN
+from .CNN import StandardCNN, PureCNN
 from .training import train
