@@ -5,8 +5,9 @@ class PureCNN(nn.Module):
     def __init__(self, config):
         super(PureCNN, self).__init__()
 
-        # append input number of channels
+        # define conv dims
         in_dim = [3, None]
+        out_channels = 11
         conv_dim = [in_dim, *config['conv_dim']]
 
         # Create list of conv layers
@@ -33,6 +34,10 @@ class PureCNN(nn.Module):
             
             # Add ReLU activation
             conv_layers.append(nn.ReLU())
+        
+        # add final layer
+        conv_layers.append(nn.Conv2d(conv_dim[-1][0], out_channels, kernel_size=1))
+        conv_layers.append(nn.Softmax(dim=1))
 
         # Define convolutional part
         self.conv = nn.Sequential(*conv_layers)
