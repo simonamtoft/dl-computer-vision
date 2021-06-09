@@ -37,7 +37,6 @@ class PureCNN(nn.Module):
         
         # add final layer
         conv_layers.append(nn.Conv2d(conv_dim[-1][0], out_channels, kernel_size=1))
-        conv_layers.append(nn.Softmax(dim=1))
 
         # Define convolutional part
         self.conv = nn.Sequential(*conv_layers)
