@@ -12,10 +12,8 @@ def compute_receptive_field_(conv_dim, maxpool_idx, point):
         upd = np.array([[0, kern-1], [0, kern-1]])
         res_range += upd
         if i in maxpool_idx:
-            print(res_range)
             res_range *= 2
             res_range += np.array([[0, 1], [0, 1]])
-        print(res_range)
     return res_range
 
 
@@ -26,3 +24,11 @@ def compute_receptive_field(config, point):
         config['maxpool_idx'], 
         point
     )
+
+
+if __name__=="__main__":
+    # example usage
+    point = [0, 0]
+    conv_dim = [[-1, 3], [-1, 3], [-1, 1], [-1, 1]] 
+    max_idx = [1]
+    compute_receptive_field_(point, conv_dim, max_idx)
