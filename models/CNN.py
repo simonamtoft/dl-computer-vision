@@ -92,3 +92,21 @@ class StandardCNN(nn.Module):
         x = x.view(x.size(0), -1)
         x = self.fc(x)
         return x
+
+
+if __name__=="__main__":
+    config = {
+        'conv_dim': [
+            [16, 5],
+            [16, 5], 
+            [16, 3],
+            [16, 3],
+            [32, 3],
+            [32, 1],
+        ],
+        'maxpool_idx': [2, 3],
+        'batch_norm': False,
+    }
+    model = PureCNN(config)
+    print(model)
+
