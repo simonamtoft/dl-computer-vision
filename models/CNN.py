@@ -4,26 +4,43 @@ import torch.nn as nn
 class PureCNN(nn.Module):
     def __init__(self, config):
         super(PureCNN, self).__init__()
-        
-        in_channels = 3
+
+        # define conv dims
+        in_dim = [3, None]
         out_channels = 11
+        conv_dim = [in_dim, *config['conv_dim']]
+
+        # Create list of conv layers
+        n_pools = 0
+        conv_layers = []
+        for i in range(1, len(conv_dim)):
+            # Add conv layer
+            cd_1 = conv_dim[i-1]
+            cd_2 = conv_dim[i]
+            conv_layers.append(
+                nn.Conv2d(cd_1[0], cd_2[0], kernel_size=cd_2[1], padding=0)
+            )
+
+            # Add maxpool
+            if i in config['maxpool_idx']:
+                conv_layers.append(
+                    nn.MaxPool2d(kernel_size=2, stride=2)
+                )
+                n_pools += 1
+            
+            # Add batchnorm
+            if config['batch_norm']:
+                conv_layers.append(nn.BatchNorm2d(cd_2[0]))
+            
+            # Add ReLU activation
+            conv_layers.append(nn.ReLU())
+        
+        # add final layer
+        conv_layers.append(nn.Conv2d(conv_dim[-1][0], out_channels, kernel_size=1))
+        conv_layers.append(nn.Softmax(dim=1))
 
         # Define convolutional part
-        self.conv = nn.Sequential([
-            nn.Conv2d(in_channels, config['conv_dim'][0], kernel_size=3, padding=1),
-            nn.MaxPool2d(kernel_size=2),
-            nn.ReLU(),
-            nn.Conv2d(config['conv_dim'][0], config['conv_dim'][1], kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(config['conv_dim'][1], config['conv_dim'][2], kernel_size=3, padding=1),
-            nn.MaxPool2d(kernel_size=2),
-            nn.ReLU(),
-            nn.Conv2d(config['conv_dim'][2], config['conv_dim'][3], kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(config['conv_dim'][3], config['conv_dim'][4], kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(config['conv_dim'][4], out_channels, kernel_size=3, padding=1),
-        ])
+        self.conv = nn.Sequential(*conv_layers)
     
     def forward(self, x):
         return self.conv(x)
@@ -54,7 +71,6 @@ class StandardCNN(nn.Module):
                 conv_layers.append(nn.BatchNorm2d(conv_dim[i]))
 
             conv_layers.append(nn.ReLU())
-
         
         # Create list of fully-connected layers
         fc_dims = [(128 // (2**n_pools))**2 * conv_dim[-1], *fc_dim, 2]
