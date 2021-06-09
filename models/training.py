@@ -14,17 +14,7 @@ def loss_func(output, target):
     return nn.CrossEntropyLoss()(output, target)
 
 
-def train(model, config, project_name, trainset, testset):
-    n_train, n_test = len(trainset), len(testset)
-
-    # Get data loaders
-    train_loader = DataLoader(
-        trainset, batch_size=config["batch_size"], shuffle=True, num_workers=2
-    )
-    test_loader = DataLoader(
-        testset, batch_size=config["batch_size"], shuffle=False, num_workers=2
-    )
-
+def train(model, config, project_name, train_loader, test_loader, n_train, n_test):
     # define output dict for return of function
     out_dict = {
         'train_acc': [],
@@ -51,7 +41,6 @@ def train(model, config, project_name, trainset, testset):
         )
 
     # do training
-    print("Start of training\n\n")
     for _ in tqdm(range(config["epochs"]), desc='epoch'):
         model.train()
         
