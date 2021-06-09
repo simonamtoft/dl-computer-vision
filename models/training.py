@@ -7,11 +7,25 @@ import torch.nn as nn
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-# We define the training as a function so we can easily re-use it.
-def train(model, config, project_name, train_loader, test_loader):
-    def loss_fun(output, target):
-        return nn.CrossEntropyLoss()(output, target)
+def loss_func(output, target):
+    if output.ndim > 2:
+        output = torch.reshape(output, (-1, output.shape[1]))
+    return nn.CrossEntropyLoss()(output, target)
 
+
+def train_2(model, config, project_name, train_loader, test_loader):
+    out_dict = {
+        'train_acc': [],
+        'test_acc': [],
+        'train_loss': [],
+        'test_loss': []
+    }
+
+    # Initialise wandb
+    wandb.init(project=project_name, config=config)
+
+
+def train(model, config, project_name, train_loader, test_loader):
     out_dict = {
         'train_acc': [],
         'test_acc': [],
@@ -37,7 +51,7 @@ def train(model, config, project_name, train_loader, test_loader):
         )
 
     # do training
-    for _ in tqdm(range(config["epochs"]), unit='epoch'):
+    for _ in range(config["epochs"]):
         model.train()
         
         # For each epoch
@@ -53,7 +67,7 @@ def train(model, config, project_name, train_loader, test_loader):
             output = model(data)
             
             # Compute the loss
-            loss = loss_fun(output, target)
+            loss = loss_func(output, target)
             
             # Backward pass through the network
             loss.backward()
@@ -78,7 +92,7 @@ def train(model, config, project_name, train_loader, test_loader):
             data, target = data.to(device), target.to(device)
             with torch.no_grad():
                 output = model(data)
-            test_loss.append(loss_fun(output, target).cpu().item())
+            test_loss.append(loss_func(output, target).cpu().item())
             predicted = output.argmax(1)
             test_correct.append((target==predicted).sum().cpu().item())
 
