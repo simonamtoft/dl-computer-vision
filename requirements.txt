@@ -1,7 +1,0 @@
-wandb
-torch
-numpy
-matplotlib
-tqdm
-pillow
-glob3
