@@ -2,7 +2,13 @@ import numpy as np
 
 
 def compute_receptive_field_(conv_dim, maxpool_idx, point):
-    """Computes respective field indices of a point in the input image"""
+    """
+    Computes respective field indices of a point in the input image
+    
+    Returns:
+        out : [height, left, top, width]
+        res_range: [[x1, x2], [y1, y2]]
+    """
     res_range = np.array([[point[0], point[0]], [point[1], point[1]]])
     for i in range(len(conv_dim)-1, -1, -1):
         kern = conv_dim[i][1]
