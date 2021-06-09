@@ -14,33 +14,6 @@ def loss_func(output, target):
     return nn.CrossEntropyLoss()(output, target)
 
 
-def get_optim(config, model):
-    # set optimizer
-    if config["optimizer"] == "adam":
-        optimizer = torch.optim.Adam(model.parameters(), lr=config["learning_rate"])
-    elif config["optimizer"] == "sgd":
-        optimizer = torch.optim.SGD(model.parameters(), lr=config["learning_rate"])
-
-    # set scheduler
-    if config['step_lr'][0]:
-        scheduler = torch.optim.lr_scheduler.StepLR(
-            optimizer, 
-            step_size=config['step_lr'][1], 
-            gamma=config['step_lr'][2]
-        )
-    return optimizer, scheduler
-
-
-def get_loaders(config, trainset, testset):
-    train_loader = DataLoader(
-        trainset, batch_size=config["batch_size"], shuffle=True, num_workers=2
-    )
-    test_loader = DataLoader(
-        testset, batch_size=config["batch_size"], shuffle=False, num_workers=2
-    )
-    return train_loader, test_loader
-
-
 def train(model, config, project_name, trainset, testset):
     out_dict = {
         'train_acc': [],
@@ -103,24 +76,56 @@ def train(model, config, project_name, trainset, testset):
             test_loss.append(loss_func(output, target).cpu().item())
             predicted = torch.reshape(output, (-1, 11)).argmax(1)
             test_correct += (target==predicted).sum().cpu().item()
-
+        
         # save losses and accuracy
         train_loss = np.mean(train_loss)
         test_loss = np.mean(test_loss)
         train_acc = train_correct/len(trainset)
         test_acc = test_correct/len(testset)
         
-        # save as dict
-        out_dict['train_acc'].append(train_acc)
-        out_dict['test_acc'].append(test_acc)
-        out_dict['train_loss'].append(train_loss)
-        out_dict['test_loss'].append(test_loss)
+        out_dict = loss_logging(out_dict, train_loss, test_loss, train_acc, test_acc)
+    return out_dict
 
-        # log to weight & bias
-        wandb.log({
-            "train_loss": train_loss,
-            "test_loss": test_loss,
-            "train_acc": train_acc,
-            "test_acc": test_acc,
-        })
+
+def get_optim(config, model):
+    # set optimizer
+    if config["optimizer"] == "adam":
+        optimizer = torch.optim.Adam(model.parameters(), lr=config["learning_rate"])
+    elif config["optimizer"] == "sgd":
+        optimizer = torch.optim.SGD(model.parameters(), lr=config["learning_rate"])
+
+    # set scheduler
+    if config['step_lr'][0]:
+        scheduler = torch.optim.lr_scheduler.StepLR(
+            optimizer, 
+            step_size=config['step_lr'][1], 
+            gamma=config['step_lr'][2]
+        )
+    return optimizer, scheduler
+
+
+def get_loaders(config, trainset, testset):
+    train_loader = DataLoader(
+        trainset, batch_size=config["batch_size"], shuffle=True, num_workers=2
+    )
+    test_loader = DataLoader(
+        testset, batch_size=config["batch_size"], shuffle=False, num_workers=2
+    )
+    return train_loader, test_loader
+
+
+def loss_logging(out_dict, train_acc, test_acc, train_loss, test_loss):
+    # save as dict
+    out_dict['train_acc'].append(train_acc)
+    out_dict['test_acc'].append(test_acc)
+    out_dict['train_loss'].append(train_loss)
+    out_dict['test_loss'].append(test_loss)
+
+    # log to weight & bias
+    wandb.log({
+        "train_loss": train_loss,
+        "test_loss": test_loss,
+        "train_acc": train_acc,
+        "test_acc": test_acc,
+    })
     return out_dict
