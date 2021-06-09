@@ -10,9 +10,10 @@ class PureCNN(nn.Module):
         conv_layers = []
         for i in range(1, len(config['conv_dim'])):
             # Add conv layer
-            cd = config['conv_dim'][i-1]
+            cd_1 = config['conv_dim'][i-1]
+            cd_2 = config['conv_dim'][i]
             conv_layers.append(
-                nn.Conv2d(cd[0], cd[0], kernel_size=cd[1], padding=1)
+                nn.Conv2d(cd_1[0], cd_2[0], kernel_size=cd_2[1], padding=1)
             )
 
             # Add maxpool
@@ -24,7 +25,7 @@ class PureCNN(nn.Module):
             
             # Add batchnorm
             if config['batch_norm']:
-                conv_layers.append(nn.BatchNorm2d(cd[0]))
+                conv_layers.append(nn.BatchNorm2d(cd_2[0]))
             
             # Add ReLU activation
             conv_layers.append(nn.ReLU())
@@ -61,7 +62,6 @@ class StandardCNN(nn.Module):
                 conv_layers.append(nn.BatchNorm2d(conv_dim[i]))
 
             conv_layers.append(nn.ReLU())
-
         
         # Create list of fully-connected layers
         fc_dims = [(128 // (2**n_pools))**2 * conv_dim[-1], *fc_dim, 2]
