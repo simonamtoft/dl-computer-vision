@@ -5,15 +5,19 @@ class PureCNN(nn.Module):
     def __init__(self, config):
         super(PureCNN, self).__init__()
 
+        # append input number of channels
+        in_dim = [3, None]
+        conv_dim = [in_dim, *config['conv_dim']]
+
         # Create list of conv layers
         n_pools = 0
         conv_layers = []
-        for i in range(1, len(config['conv_dim'])):
+        for i in range(1, len(conv_dim)):
             # Add conv layer
-            cd_1 = config['conv_dim'][i-1]
-            cd_2 = config['conv_dim'][i]
+            cd_1 = conv_dim[i-1]
+            cd_2 = conv_dim[i]
             conv_layers.append(
-                nn.Conv2d(cd_1[0], cd_2[0], kernel_size=cd_2[1], padding=1)
+                nn.Conv2d(cd_1[0], cd_2[0], kernel_size=cd_2[1], padding=0)
             )
 
             # Add maxpool
