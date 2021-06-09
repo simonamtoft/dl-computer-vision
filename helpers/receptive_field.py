@@ -19,7 +19,7 @@ def compute_receptive_field_(conv_dim, maxpool_idx, point):
 
 def compute_receptive_field(config, point):
     """Computes respective field indices of a point in the input image"""
-    compute_receptive_field_(
+    return compute_receptive_field_(
         config['conv_dim'], 
         config['maxpool_idx'], 
         point
