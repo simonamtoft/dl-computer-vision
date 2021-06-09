@@ -1,2 +1,2 @@
-from .Hotdog import load_hotdog, Hotdog_NotHotdog
+from .Hotdog import Hotdog_NotHotdog
 from .SVHN import SVHNCorners
