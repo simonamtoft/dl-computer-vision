@@ -15,8 +15,9 @@ class PureCNN(nn.Module):
         conv_layers = []
         for i in range(1, len(conv_dims)):
             # Add conv layer
+            cd = conv_dims[i-1]
             conv_layers.append(
-                nn.Conv2d(conv_dims[i-1], conv_dims[i], kernel_size=3, padding=1)
+                nn.Conv2d(cd[0], cd[0], kernel_size=cd[1], padding=1)
             )
 
             # Add maxpool
