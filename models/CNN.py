@@ -4,18 +4,13 @@ import torch.nn as nn
 class PureCNN(nn.Module):
     def __init__(self, config):
         super(PureCNN, self).__init__()
-        
-        in_channels = 3
-        out_channels = 11
-
-        conv_dims = [in_channels, *config['conv_dim'], out_channels]
 
         # Create list of conv layers
         n_pools = 0
         conv_layers = []
-        for i in range(1, len(conv_dims)):
+        for i in range(1, len(config['conv_dim'])):
             # Add conv layer
-            cd = conv_dims[i-1]
+            cd = config['conv_dim'][i-1]
             conv_layers.append(
                 nn.Conv2d(cd[0], cd[0], kernel_size=cd[1], padding=1)
             )
@@ -29,7 +24,7 @@ class PureCNN(nn.Module):
             
             # Add batchnorm
             if config['batch_norm']:
-                conv_layers.append(nn.BatchNorm2d(conv_dims[i]))
+                conv_layers.append(nn.BatchNorm2d(cd[0]))
             
             # Add ReLU activation
             conv_layers.append(nn.ReLU())
