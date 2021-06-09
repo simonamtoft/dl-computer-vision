@@ -14,19 +14,23 @@ class PureCNN(nn.Module):
         n_pools = 0
         conv_layers = []
         for i in range(1, len(conv_dims)):
+            # Add conv layer
+            conv_layers.append(
+                nn.Conv2d(conv_dims[i-1], conv_dims[i], kernel_size=3, padding=1)
+            )
+
+            # Add maxpool
             if i in config['maxpool_idx']:
                 conv_layers.append(
                     nn.MaxPool2d(kernel_size=2, stride=2)
                 )
                 n_pools += 1
-
-            conv_layers.append(
-                nn.Conv2d(conv_dims[i-1], conv_dims[i], kernel_size=3, padding=1)
-            )
-
+            
+            # Add batchnorm
             if config['batch_norm']:
                 conv_layers.append(nn.BatchNorm2d(conv_dims[i]))
-
+            
+            # Add ReLU activation
             conv_layers.append(nn.ReLU())
 
         # Define convolutional part
