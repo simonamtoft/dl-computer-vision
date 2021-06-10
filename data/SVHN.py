@@ -36,10 +36,10 @@ class SVHNCorners(torch.utils.data.Dataset):
         return X, y
 
 
-class SVHNTest(torch.utils.data.Dataset):
-    def __init__(self, transform, data_path='SVHN'):
+class SVHNReal(torch.utils.data.Dataset):
+    def __init__(self, train, transform, data_path='SVHN'):
         self.transform = transform
-        data_path = os.path.join(data_path, 'test')
+        data_path = os.path.join(data_path, 'train' if train else 'test')
         self.image_paths = glob.glob(data_path + '/*.png')
         self.csv_paths = [p.split(".png")[0]+".csv" for p in self.image_paths]
         
