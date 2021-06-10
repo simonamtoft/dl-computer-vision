@@ -10,7 +10,7 @@ def non_maximum_supression(config, pred, output, p_thresh=0.8, iou_thresh=0.1):
         pred        :   Argmax of model output with shape [H x W]
         output      :   Output of model (after softmax) with shape [C x H x W]
         p_thresh    :   Probability cut-off value [0; 1]. Higher is stricter.
-        iou_thresh  :   IoU cut-off value [0; 1]. Lower is stricter.
+        iou_thresh  :   IoU cut-off value. Lower is stricter.
     Returns:
     List of dicts with fields
         bbox        : [height, left, top, width]
