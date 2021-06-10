@@ -104,4 +104,7 @@ def train(model, config, project_name, train_loader, test_loader, n_train, n_tes
             "train_acc": train_acc,
             "test_acc": test_acc,
         })
+    
+    # finish run
+    wandb.finish()
     return out_dict
