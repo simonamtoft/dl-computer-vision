@@ -161,9 +161,14 @@ def plt_bboxes(img, boxes, title="", line_width=1):
                 facecolor='none'
             )
         ax.add_patch(rect)
-    ax.set_title(title)
     ax.axis('off')
-    ax.legend(loc='upper left')
+
+    if title != '':
+        ax.set_title(title)
+    
+    if labels:
+        ax.legend(loc='upper left')
+    
     plt.plot()
 
 
