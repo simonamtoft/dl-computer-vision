@@ -4,7 +4,10 @@ import numpy as np
 def compute_receptive_field_(conv_dim, maxpool_idx, point):
     """
     Computes respective field indices of a point in the input image
-    
+    Input:
+        point:          Input point with coordinates [x, y]
+        conv_dim:       List of lists of channels and kernel dimensions of model [[C, K]]
+        maxpool_idx:    List of idx of maxpool layers in model.
     Returns:
         out : [height, left, top, width]
         res_range: [[x1, x2], [y1, y2]]
@@ -24,7 +27,15 @@ def compute_receptive_field_(conv_dim, maxpool_idx, point):
 
 
 def compute_receptive_field(config, point):
-    """Computes respective field indices of a point in the input image"""
+    """
+    Computes respective field indices of a point in the input image
+    Input:
+        point:          Input point with coordinates [x, y]
+        config:         Config dict of model.
+    Returns:
+        out:        [height, left, top, width]
+        res_range:  Range of receptive field [[x1, x2], [y1, y2]]
+    """
     return compute_receptive_field_(
         config['conv_dim'], 
         config['maxpool_idx'], 
