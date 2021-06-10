@@ -130,7 +130,7 @@ def get_iou(bb1, bb2):
     return iou
 
 
-def plt_bboxes(img, boxes, title=""):
+def plt_bboxes(img, boxes, title="", line_width=1):
     """Plot bounding boxes on top of image
     Inputs
         img     :   Image of shape [3 x H x W]
@@ -147,14 +147,18 @@ def plt_bboxes(img, boxes, title=""):
         if c not in labels:
             rect = patches.Rectangle(
                 (rec[1], rec[2]), rec[3], rec[0], 
-                linewidth=1, edgecolor=colors[box['c']], facecolor='none',
+                linewidth=line_width, 
+                edgecolor=colors[box['c']], 
+                facecolor='none',
                 label=f"{box['c']}"
             )
             labels.append(c)
         else:
             rect = patches.Rectangle(
                 (rec[1], rec[2]), rec[3], rec[0], 
-                linewidth=1, edgecolor=colors[box['c']], facecolor='none',
+                linewidth=line_width, 
+                edgecolor=colors[box['c']], 
+                facecolor='none'
             )
         ax.add_patch(rect)
     ax.set_title(title)
