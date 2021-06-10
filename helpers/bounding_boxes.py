@@ -131,6 +131,11 @@ def get_iou(bb1, bb2):
 
 
 def plt_bboxes(img, boxes, title=""):
+    """Plot bounding boxes on top of image
+    Inputs
+        img     :   Image of shape [3 x H x W]
+        boxes   :   Bounding boxes from the function non_maximum_supression
+    """
     f, ax = plt.subplots()
     ax.imshow(np.swapaxes(np.swapaxes(img.numpy(), 0, 2), 0, 1))
     colors = ['red', 'yellow', 'green', 'blue', 'orange', 'teal', 'pink', 'cyan', 'black', 'magenta']
