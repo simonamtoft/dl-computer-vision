@@ -170,7 +170,8 @@ def plt_bboxes(img, boxes, title="", line_width=1, ax=None):
     if labels:
         ax.legend(loc='upper left')
     
-    plt.plot()
+    if ax == None:
+        plt.plot()
 
 
 if __name__=="__main__":
