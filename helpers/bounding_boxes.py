@@ -42,7 +42,7 @@ def create_box_dict(config, pred, output, p_thresh):
 
 def prune_boxes_iou(raw_boxes, iou_thresh):
     boxes = []
-    for i, c_boxes in enumerate(raw_boxes):
+    for c_boxes in raw_boxes:
         while c_boxes:
             max_box = max(c_boxes, key=lambda x: x["p"])
             boxes.append(max_box)
