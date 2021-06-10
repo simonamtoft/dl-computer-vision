@@ -3,19 +3,33 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 
-def non_maximum_supression(config, pred, output, p_tresh=0.8, iou_tresh=0.1):
-    raw_boxes = create_box_dict(config, pred, output, p_tresh)
-    return prune_boxes_iou(raw_boxes, iou_tresh)
+def non_maximum_supression(config, pred, output, p_thresh=0.8, iou_thresh=0.1):
+    """ Returns list of boxes after performing non-maximum supression.
+    Inputs:
+        config      :   Config used to train model.
+        pred        :   Argmax of model output with shape [H x W]
+        output      :   Output of model (after softmax) with shape [C x H x W]
+        p_thresh    :   Probability cut-off value [0; 1]. Higher is stricter.
+        iou_thresh  :   IoU cut-off value [0; 1]. Lower is stricter.
+    Returns:
+    List of dicts with fields
+        bbox        : [height, left, top, width]
+        c           : Predicted class of bbox
+        p           : Probability of prediction
+        range       : [x1, x2, y1, y2]
+    """
+    raw_boxes = create_box_dict(config, pred, output, p_thresh)
+    return prune_boxes_iou(raw_boxes, iou_thresh)
 
 
-def create_box_dict(config, pred, output, p_tresh):
+def create_box_dict(config, pred, output, p_thresh):
     boxes = [[] for i in range(10)]
     for y in range(pred.shape[0]):
         for x in range(pred.shape[1]):
             c = pred[y, x]
             if c != 10:
                 p = output[c, y, x]
-                if p > p_tresh:
+                if p > p_thresh:
                     bbox, ran = compute_receptive_field(config, [x, y])
                     boxes[c].append({
                         'p': p,
@@ -26,7 +40,7 @@ def create_box_dict(config, pred, output, p_tresh):
     return boxes
 
 
-def prune_boxes_iou(raw_boxes, iou_tresh):
+def prune_boxes_iou(raw_boxes, iou_thresh):
     boxes = []
     for i, c_boxes in enumerate(raw_boxes):
         while c_boxes:
@@ -36,7 +50,7 @@ def prune_boxes_iou(raw_boxes, iou_tresh):
 
             _c_boxes = []
             for box in c_boxes:
-                if get_iou(max_box['range'], box['range']) <= iou_tresh:
+                if get_iou(max_box['range'], box['range']) <= iou_thresh:
                     _c_boxes.append(box)
             c_boxes = _c_boxes
     return boxes
