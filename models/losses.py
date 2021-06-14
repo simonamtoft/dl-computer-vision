@@ -9,14 +9,15 @@ def dice_loss(y_pred, y_real):
     return 1 - (num / den)
 
 
-def bce_loss(y_pred, y_real, weights=[1, 3]):
+def bce_loss(y_pred, y_real, weights=[0.01, 0.99]):
     # https://discuss.pytorch.org/t/solved-class-weight-for-bceloss/3114
     y_pred = torch.clamp(torch.sigmoid(y_pred), 1e-8, 1-1e-8)
-    # term1 = y_pred - y_real*y_pred
-    # term2 = torch.log(1 + torch.exp(-y_pred))
     term1 = y_real * torch.log(y_pred)
     term2 = (1 - y_real) * torch.log(1 - y_pred)
-    bce = term1 * weights[0] + term2 * weights[1]
+    if weights != None:
+        bce = term1 * weights[1] + term2 * weights[0]
+    else:
+        bce = term1 + term2
     return torch.neg(torch.mean(bce))
 
 
