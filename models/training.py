@@ -13,7 +13,7 @@ from helpers import compute_metrics
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-def train_medical(model, config, train_loader, val_loader, project_name="tmp"):
+def train_medical(model, config, train_loader, val_loader, project_name="tmp", plotting=True):
     # Initialise wandb
     wandb.init(project=project_name, config=config)
 
@@ -76,22 +76,24 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp"):
         with torch.no_grad():
             Y_hat = F.sigmoid(model(X_val.to(device))).detach().cpu()
         clear_output(wait=True)
+        
+        if plotting:
+            f, ax = plt.subplots(3, 6, figsize=(14, 6))
+            for k in range(6):
+                ax[0,k].imshow(X_val[k, 0].numpy(), cmap='gray')
+                ax[0,k].set_title('Real data')
+                ax[0,k].axis('off')
 
-        f, ax = plt.subplots(3, 6, figsize=(14, 6))
-        for k in range(6):
-          ax[0,k].imshow(X_val[k, 0].numpy(), cmap='gray')
-          ax[0,k].set_title('Real data')
-          ax[0,k].axis('off')
+                y_hat = Y_hat[k, 0]
+                ax[1,k].imshow(Y_hat[k, 0], cmap='gray')
+                ax[1,k].set_title('Model Output')
+                ax[1,k].axis('off')
 
-          ax[1,k].imshow(Y_hat[k, 0], cmap='gray')
-          ax[1,k].set_title('Model Output')
-          ax[1,k].axis('off')
-
-          ax[2,k].imshow(Y_val[k, 0], cmap='gray')
-          ax[2,k].set_title('Real Segmentation')
-          ax[2,k].axis('off')
-        plt.suptitle('%d / %d - loss: %f' % (epoch+1, config['epochs'], avg_loss))
-        plt.show()
+                ax[2,k].imshow(Y_val[k, 0], cmap='gray')
+                ax[2,k].set_title('Real Segmentation')
+                ax[2,k].axis('off')
+            plt.suptitle('%d / %d - loss: %f' % (epoch+1, config['epochs'], avg_loss))
+            plt.show()
 
         # print performance metrics
         dice, iou, acc, sens, spec = compute_metrics(Y_hat, Y_batch)
