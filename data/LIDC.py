@@ -11,7 +11,7 @@ class LIDC(torch.utils.data.Dataset):
         annotator = 0, 1, 2, 3
     """
     # get image paths
-    data_path += f"/LIDC_crops/LIDC_DLCV_version/{dataset}/images"
+    data_path += f"{dataset}/images"
     self.image_paths = glob(data_path + "/*.png")
 
     # get segmentation paths
