@@ -54,7 +54,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp"):
             Y_pred = model(X_batch)
 
             # pad output with zeros such that it fits original shape
-            pad_size = (Y_pred.shape[2] - Y_batch.shape[2])/2
+            pad_size = (Y_pred.shape[2] - Y_batch.shape[2])//2
             Y_pred = F.pad(Y_pred, (pad_size, pad_size, pad_size, pad_size))
 
             # update
