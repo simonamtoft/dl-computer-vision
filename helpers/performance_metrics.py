@@ -48,10 +48,10 @@ def compute_specificity(TN, FP):
 
 def compute_metrics(pred, anno):
     # Compute confusion metrics
-    TP = torch.sum(pred == 1 & anno == 1)
-    TN = torch.sum(pred == 0 & anno == 0)
-    FP = torch.sum(pred == 1 & anno == 0)
-    FN = torch.sum(pred == 0 & anno == 1)
+    TP = torch.sum((pred == 1) & (anno == 1))
+    TN = torch.sum((pred == 0) & (anno == 0))
+    FP = torch.sum((pred == 1) & (anno == 0))
+    FN = torch.sum((pred == 0) & (anno == 1))
     
     # Compute performance metrics
     dice = compute_dice()
