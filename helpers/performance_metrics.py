@@ -34,6 +34,8 @@ def compute_sensitivity(TP, FN):
         TP  (int)   :   Number of true positives predicted
         FN  (int)   :   Number of false negatives predicted
     """
+    if (TP + FN) == 0:
+        return 0
     return TP / (TP + FN)
 
 
@@ -43,6 +45,8 @@ def compute_specificity(TN, FP):
         TN  (int)   :   Number of true negatives predicted
         FP  (int)   :   Number of false positives predicted
     """
+    if (TN + FP) == 0:
+        return 0
     return TN / (TN + FP)
 
 
