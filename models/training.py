@@ -43,7 +43,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
 
         avg_loss = 0
         # dice, iou, acc, sens, spec = 0, 0, 0, 0, 0
-        model.train()  # train mode
+        model.train()
         for X_batch, Y_batch in train_loader:
             X_batch = X_batch.to(device)
             Y_batch = Y_batch.to(device)
@@ -59,8 +59,8 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             Y_pred = model(X_batch)
 
             # pad output with zeros such that it fits original shape
-            pad_size = (Y_batch.shape[2] - Y_pred.shape[2])//2
-            Y_pred = F.pad(Y_pred, (pad_size, pad_size, pad_size, pad_size))
+            # pad_size = (Y_batch.shape[2] - Y_pred.shape[2])//2
+            # Y_pred = F.pad(Y_pred, (pad_size, pad_size, pad_size, pad_size))
 
             # update
             loss = loss_fn(Y_pred, Y_batch) # forward-pass
@@ -95,9 +95,12 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             Y_val = Y_val[:, 0, :, :]
         
         # pad with zeros
-        pad_size = (Y_val.shape[2] - Y_hat.shape[2])//2
-        Y_hat = F.pad(Y_hat, (pad_size, pad_size, pad_size, pad_size))
+        # pad_size = (Y_val.shape[2] - Y_hat.shape[2])//2
+        # Y_hat = F.pad(Y_hat, (pad_size, pad_size, pad_size, pad_size))
         
+        print('Y_hat, X_val, Y_val')
+        print(Y_hat.shape, X_val.shape, Y_val.shape)
+
         if plotting:
             clear_output(wait=True)
             f, ax = plt.subplots(3, 6, figsize=(14, 6))
