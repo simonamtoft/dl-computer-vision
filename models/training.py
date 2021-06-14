@@ -68,7 +68,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             optimizer.step()                # update weights
 
             # calculate metrics to show the user
-            avg_loss += loss / len(train_loader)
+            avg_loss += loss.item() / len(train_loader)
             # dice, iou, acc, sens, spec = compute_metrics(Y_pred, Y_batch)
         
         # dice /= len(train_loader)
