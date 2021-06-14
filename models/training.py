@@ -49,7 +49,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp"):
 
             # update
             Y_pred = model(X_batch)         # model pass
-            loss = loss_fn(Y_batch, Y_pred) # forward-pass
+            loss = loss_fn(Y_pred, Y_batch) # forward-pass
             loss.backward()                 # backward-pass
             optimizer.step()                # update weights
 
