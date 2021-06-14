@@ -3,7 +3,7 @@ import wandb
 import numpy as np
 import torch
 # import torch.nn as nn
-import torch.functional as F
+import torch.nn.functional as F
 from IPython.display import clear_output
 import matplotlib.pyplot as plt
 
