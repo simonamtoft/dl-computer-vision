@@ -54,8 +54,8 @@ def compute_metrics(pred, anno):
     FN = torch.sum((pred == 0) & (anno == 1))
     
     # Compute performance metrics
-    dice = compute_dice()
-    iou = compute_iou()
+    dice = compute_dice(pred, anno)
+    iou = compute_iou(pred, anno)
     acc = compute_accuracy(TP, TN, FP, FN)
     sens = compute_sensitivity(TP, FN)
     spec = compute_specificity(TN, FP)
