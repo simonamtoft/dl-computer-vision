@@ -38,7 +38,7 @@ class UNet(nn.Module):
         self.dec_conv = nn.ModuleList([])
         self.dec_upsample = nn.ModuleList([])
         for i in range(1, len(dec_dims)):
-            module_list = append_layer([], dec_dims[i-1], dec_dims[i], config)
+            module_list = append_layer([], 2*dec_dims[i-1], dec_dims[i], config)
             for _ in range(config['n_convs']-1):
                 module_list = append_layer(module_list, dec_dims[i], dec_dims[i], config)            
             self.dec_conv.append(nn.Sequential(*module_list))
