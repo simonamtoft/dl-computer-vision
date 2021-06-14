@@ -12,9 +12,9 @@ def compute_dice(pred, anno):
 
 def compute_iou(pred, anno):
     """Computes the intersection over union of the predicted and annotated segmentations"""
-    A = pred[pred == 1]
-    B = anno[anno == 1]
-    return torch.sum(A and B) / torch.sum(A or B)
+    A = pred == 1
+    B = anno == 1
+    return torch.sum(A & B) / torch.sum(A | B)
 
 
 def compute_accuracy(TP, TN, FP, FN):
@@ -48,10 +48,10 @@ def compute_specificity(TN, FP):
 
 def compute_metrics(pred, anno):
     # Compute confusion metrics
-    TP = torch.sum(pred[pred == 1] & anno[anno == 1])
-    TN = torch.sum(pred[pred == 0] & anno[anno == 0])
-    FP = torch.sum(pred[pred == 1] & anno[anno == 0])
-    FN = torch.sum(pred[pred == 0] & anno[anno == 1])
+    TP = torch.sum(pred == 1 & anno == 1)
+    TN = torch.sum(pred == 0 & anno == 0)
+    FP = torch.sum(pred == 1 & anno == 0)
+    FN = torch.sum(pred == 0 & anno == 1)
     
     # Compute performance metrics
     dice = compute_dice()
