@@ -32,13 +32,9 @@ def focal_loss(y_pred, y_real, gamma=2):
 
 
 def loss_func(loss='ce'):
-    # # reshape if needed
-    # if y_pred.ndim > 2:
-    #     y_pred = torch.reshape(y_pred, (-1, y_pred.shape[1]))
-    
-    # get specified loss function
     if loss == 'ce':
-        return nn.CrossEntropyLoss()
+        weight = torch.Tensor([0.2, 0.8])
+        return nn.CrossEntropyLoss(weight=weight)
     elif loss == 'dice':
         return dice_loss
     elif loss == 'bce':

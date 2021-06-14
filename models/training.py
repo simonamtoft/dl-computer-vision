@@ -19,9 +19,11 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
 
     # Set optimizer
     if config["optimizer"] == "adam":
-      optimizer = torch.optim.Adam(model.parameters(), lr=config["learning_rate"])
+        optimizer = torch.optim.Adam(model.parameters(), lr=config["learning_rate"])
     elif config["optimizer"] == "sgd":
-      optimizer = torch.optim.SGD(model.parameters(), lr=config["learning_rate"])
+        optimizer = torch.optim.SGD(model.parameters(), lr=config["learning_rate"])
+    else: 
+        raise Exception('Optimizer not implemented. Chose "adam" or "sgd".')
     
     # set learning rate scheduler
     if config['step_lr'][0]:
@@ -42,7 +44,6 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
         print(f"* Epoch {epoch+1}/{config['epochs']}")
 
         avg_loss = 0
-        # dice, iou, acc, sens, spec = 0, 0, 0, 0, 0
         model.train()
         for X_batch, Y_batch in train_loader:
             X_batch = X_batch.to(device)
@@ -58,10 +59,6 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             # model pass
             Y_pred = model(X_batch)
 
-            # pad output with zeros such that it fits original shape
-            # pad_size = (Y_batch.shape[2] - Y_pred.shape[2])//2
-            # Y_pred = F.pad(Y_pred, (pad_size, pad_size, pad_size, pad_size))
-
             # update
             loss = loss_fn(Y_pred, Y_batch) # forward-pass
             loss.backward()                 # backward-pass
@@ -69,23 +66,15 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
 
             # calculate metrics to show the user
             avg_loss += loss.item() / len(train_loader)
-            # dice, iou, acc, sens, spec = compute_metrics(Y_pred, Y_batch)
-        
-        # dice /= len(train_loader)
-        # iou /= len(train_loader)
-        # acc /= len(train_loader)
-        # sens /= len(train_loader)
-        # spec /= len(train_loader)
         
         # print some metrics
-        # print(f'Dice: {dice}\nIoU: {iou}\nAccuracy: {acc}\nSensitivity: {sens}\nSpecificity: {spec}')
         print(' - loss: %f' % avg_loss)
 
         if config['step_lr'][0]:
             scheduler.step()
 
         # show intermediate results
-        model.eval()  # testing mode
+        model.eval()
         X_val, Y_val = next(iter(val_loader))
         with torch.no_grad():
             Y_hat = torch.sigmoid(model(X_val.to(device))).detach().cpu()
@@ -93,13 +82,6 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
         # If we have multiple annotations loaded
         if Y_val.ndim > 4:
             Y_val = Y_val[:, 0, :, :]
-        
-        # pad with zeros
-        # pad_size = (Y_val.shape[2] - Y_hat.shape[2])//2
-        # Y_hat = F.pad(Y_hat, (pad_size, pad_size, pad_size, pad_size))
-        
-        print('Y_hat, X_val, Y_val')
-        print(Y_hat.shape, X_val.shape, Y_val.shape)
 
         if plotting:
             clear_output(wait=True)
