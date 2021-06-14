@@ -33,7 +33,7 @@ class LIDC(torch.utils.data.Dataset):
     image = Image.open(image_path)
     segmentation = Image.open(seg_path)
 
-    y = self.common_transform(np.asarray(segmentation))
+    y = self.common_transform(segmentation)
     X = self.common_transform(self.transform(image))
     return X, y
 
