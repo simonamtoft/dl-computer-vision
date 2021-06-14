@@ -46,3 +46,5 @@ def loss_func(loss='ce'):
         return bce_total_variation
     elif loss == 'focal':
         return focal_loss
+    else:
+        raise Exception('Specified loss function not implemented!')
