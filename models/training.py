@@ -46,6 +46,8 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
         for X_batch, Y_batch in train_loader:
             X_batch = X_batch.to(device)
             Y_batch = Y_batch.to(device)
+
+            # If we have multiple annotations loaded
             if Y_batch.ndim > 4:
                 Y_batch = Y_batch[:, 0, :, :]
 
@@ -78,6 +80,10 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
         with torch.no_grad():
             Y_hat = F.sigmoid(model(X_val.to(device))).detach().cpu()
         clear_output(wait=True)
+
+        # If we have multiple annotations loaded
+        if Y_val.ndim > 4:
+            Y_val = Y_val[:, 0, :, :]
         
         if plotting:
             f, ax = plt.subplots(3, 6, figsize=(14, 6))
@@ -86,7 +92,6 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
                 ax[0,k].set_title('Real data')
                 ax[0,k].axis('off')
 
-                y_hat = Y_hat[k, 0]
                 ax[1,k].imshow(Y_hat[k, 0], cmap='gray')
                 ax[1,k].set_title('Model Output')
                 ax[1,k].axis('off')
