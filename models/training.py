@@ -46,6 +46,8 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
         for X_batch, Y_batch in train_loader:
             X_batch = X_batch.to(device)
             Y_batch = Y_batch.to(device)
+            if Y_batch.ndim > 4:
+                Y_batch = Y_batch[:, 0, :, :]
 
             # set parameter gradients to zero
             optimizer.zero_grad()
