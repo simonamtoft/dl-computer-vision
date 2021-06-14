@@ -3,11 +3,6 @@ import torch.nn as nn
 from torchvision.transforms.functional import center_crop
 
 
-def skip_connection(enc, dec):
-    dec = center_crop(dec, output_size=enc.shape[2:3])
-    return torch.cat([enc, dec], 1)
-
-
 class UNet(nn.Module):
     def __init__(self, config):
         super().__init__()
@@ -21,25 +16,9 @@ class UNet(nn.Module):
         self.enc_conv = nn.ModuleList([])
         self.enc_pool = nn.ModuleList([])
         for i in range(1, len(enc_dims)):
-            
-            # add convolutional layers
-            module_list = [
-                nn.Conv2d(enc_dims[i-1], enc_dims[i], kernel_size=3, padding=0),
-                nn.Conv2d(enc_dims[i], enc_dims[i], kernel_size=3, padding=0),
-            ]
-
-            # add batch norm
-            if config['batch_norm']:
-                module_list.append(
-                    nn.BatchNorm2d(enc_dims[i])
-                )
-            
-            # add activation
-            module_list.append(nn.ReLU())
-
-            # add dropout
-            if config['dropout']:
-                module_list.append(nn.Dropout(p=config['dropout']))
+            module_list = append_layer([], enc_dims[i-1], enc_dims[i], config)
+            for _ in range(config['n_convs']-1):
+                module_list = append_layer(module_list, enc_dims[i], enc_dims[i], config)
 
             self.enc_conv.append(nn.Sequential(*module_list))
             self.enc_pool.append(
@@ -47,28 +26,29 @@ class UNet(nn.Module):
             )
 
         # bottleneck
-        self.bottleneck = nn.Sequential(
-            nn.Conv2d(enc_dims[i], enc_dims[i], kernel_size=3, padding=0),
-            nn.ReLU()
-        )
+        self.bottleneck = nn.ModuleList([])
+        for _ in range(config['n_convs']-1):
+            self.bottleneck.append(nn.Conv2d(enc_dims[i], enc_dims[i], kernel_size=3, padding=0))
+        self.bottleneck.append(nn.ReLU())
 
         # decoder (upsampling)
         dec_dims = [*channels]
         self.dec_conv = nn.ModuleList([])
         self.dec_upsample = nn.ModuleList([])
         for i in range(1, len(dec_dims)):
-            self.dec_conv.append(nn.Sequential(
-                nn.Conv2d(2*dec_dims[i-1], dec_dims[i], kernel_size=3, padding=0),
-                nn.Conv2d(dec_dims[i], dec_dims[i], kernel_size=3, padding=0),
-                nn.ReLU()
-            ))
+            module_list = append_layer([], dec_dims[i-1], dec_dims[i], config)
+            for _ in range(config['n_convs']-1):
+                module_list = append_layer(module_list, dec_dims[i], dec_dims[i], config)            
+            self.dec_conv.append(nn.Sequential(*module_list))
             self.dec_upsample.append(
                 nn.ConvTranspose2d(dec_dims[i], dec_dims[i], kernel_size=4, stride=2)
             )
         # final layer is without ReLU activation.
-        self.dec_conv.append(
-            nn.Conv2d(2*dec_dims[i], n_labels, kernel_size=1, padding=0)
-        )
+        self.dec_conv.append(nn.Sequential(
+            nn.Conv2d(2*dec_dims[i], dec_dims[i], kernel_size=1, padding=0),
+            nn.Conv2d(dec_dims[i], n_labels, kernel_size=1, padding=0),
+            nn.Conv2d(n_labels, n_labels, kernel_size=1, padding=0)
+        ))
         self.dec_upsample.append(
             nn.ConvTranspose2d(dec_dims[i], dec_dims[i], kernel_size=4, stride=2)
         )
@@ -104,3 +84,32 @@ class UNet(nn.Module):
             dec = self.dec_conv[i](dec)
         
         return dec
+
+
+def skip_connection(enc, dec):
+    dec = center_crop(dec, output_size=enc.shape[2:3])
+    return torch.cat([enc, dec], 1)
+
+
+def append_layer(module_list, dim_1, dim_2, config):
+    out_list = module_list
+
+    # Add convolutional layer
+    out_list.append(
+        nn.Conv2d(dim_1, dim_2, kernel_size=3, padding=0)
+    )
+
+    # add batch norm
+    if config['batch_norm']:
+        out_list.append(
+            nn.BatchNorm2d(dim_2)
+        )
+
+    # add activation
+    out_list.append(nn.ReLU())
+
+    # add dropout
+    if config['dropout']:
+        out_list.append(nn.Dropout(p=config['dropout']))
+    
+    return out_list
