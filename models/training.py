@@ -80,13 +80,13 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
         with torch.no_grad():
             Y_hat = F.sigmoid(model(X_val.to(device))).detach().cpu()
 
-        # pad with zeros
-        pad_size = (Y_batch.shape[2] - Y_pred.shape[2])//2
-        Y_hat = F.pad(Y_hat, (pad_size, pad_size, pad_size, pad_size))
-
         # If we have multiple annotations loaded
         if Y_val.ndim > 4:
             Y_val = Y_val[:, 0, :, :]
+        
+        # pad with zeros
+        pad_size = (Y_val.shape[2] - Y_hat.shape[2])//2
+        Y_hat = F.pad(Y_hat, (pad_size, pad_size, pad_size, pad_size))
         
         if plotting:
             clear_output(wait=True)
