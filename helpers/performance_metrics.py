@@ -47,7 +47,6 @@ def compute_specificity(TN, FP):
 
 
 def compute_metrics(pred, anno):
-
     # Compute confusion metrics
     TP = torch.sum(pred(pred == 1) & anno(anno == 1))
     TN = torch.sum(pred(pred == 0) & anno(anno == 0))
