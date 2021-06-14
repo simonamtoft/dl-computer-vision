@@ -1,3 +1,3 @@
 from .Hotdog import Hotdog_NotHotdog
 from .SVHN import SVHNCorners, SVHNReal
-from .LIDC import LIDC
+from .LIDC import LIDC, LIDC_CLDV

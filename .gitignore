@@ -128,3 +128,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 *.jpg
+
+
+.vscode
+LIDC_crops/
+LIDC_CLDV.zip

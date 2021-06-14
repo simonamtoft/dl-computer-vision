@@ -2,7 +2,8 @@ import torch
 from PIL import Image
 from glob import glob
 import numpy as np
-
+from torchvision.transforms import ToTensor
+import os
 
 class LIDC(torch.utils.data.Dataset):
   def __init__(self, transform, common_transform, dataset='train', annotator=0, data_path="LIDC"):
@@ -35,3 +36,31 @@ class LIDC(torch.utils.data.Dataset):
     y = self.common_transform(np.asarray(segmentation))
     X = self.common_transform(self.transform(image))
     return X, y
+
+
+class LIDC_CLDV(torch.utils.data.Dataset):
+  def __init__(self, split="train", transform=ToTensor(), data_path="LIDC_crops/LIDC_DLCV_version", annotator=-1):
+    self.transform = transform
+    data_path = os.path.join(data_path, split)
+    self.image_paths = glob(data_path + "/images/*.png")
+    if annotator == -1:
+      self.lesion_paths = [
+        [path.replace("images", "lesions").replace(".png", f"_l{i}.png") for path in self.image_paths]
+        for i in range(4)
+      ]
+    else:
+      self.lesion_paths = [
+        [path.replace("images", "lesions").replace(".png", f"_l{annotator}.png") for path in self.image_paths]
+      ]
+
+  def __len__(self):
+      'Returns the total number of samples'
+      return len(self.image_paths)
+
+  def __getitem__(self, idx):
+      'Generates one sample of data'
+      image = Image.open(self.image_paths[idx])
+      segmentations = [ToTensor()(Image.open(annotator[idx])) for annotator in self.lesion_paths]
+      Y = torch.stack(segmentations)
+      X = ToTensor()(image)
+      return X, Y
