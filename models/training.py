@@ -42,6 +42,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
         print(f"* Epoch {epoch+1}/{config['epochs']}")
 
         avg_loss = 0
+        dice, iou, acc, sens, spec = 0, 0, 0, 0, 0
         model.train()  # train mode
         for X_batch, Y_batch in train_loader:
             X_batch = X_batch.to(device)
@@ -68,7 +69,16 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
 
             # calculate metrics to show the user
             avg_loss += loss / len(train_loader)
-    
+            dice, iou, acc, sens, spec += compute_metrics(Y_pred, Y_batch)
+        
+        dice /= len(train_loader)
+        iou /= len(train_loader)
+        acc /= len(train_loader)
+        sens /= len(train_loader)
+        spec /= len(train_loader)
+        
+        # print some metrics
+        print(f'Dice: {dice}\nIoU: {iou}\nAccuracy: {acc}\nSensitivity: {sens}\nSpecificity: {spec}')
         print(' - loss: %f' % avg_loss)
 
         if config['step_lr'][0]:
@@ -105,10 +115,6 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
                 ax[2,k].axis('off')
             plt.suptitle('%d / %d - loss: %f' % (epoch+1, config['epochs'], avg_loss))
             plt.show()
-
-        # print performance metrics
-        dice, iou, acc, sens, spec = compute_metrics(Y_hat, Y_batch)
-        print(f'Dice: {dice}\nIoU: {iou}\nAccuracy: {acc}\nSensitivity: {sens}\nSpecificity: {spec}')
 
         # log to weight & bias
         wandb.log({
