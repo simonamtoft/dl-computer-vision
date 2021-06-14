@@ -1,2 +1,3 @@
 from .CNN import StandardCNN, PureCNN
-from .training import train, loss_func
+from .training import train
+from .losses import loss_func
