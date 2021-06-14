@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 
 def dice_loss(y_pred, y_real):
     y_pred = torch.sigmoid(y_pred)
@@ -38,9 +40,12 @@ def focal_loss(y_pred, y_real, gamma=2):
     return -torch.mean(term1 + term2)
 
 
-def loss_func(loss='ce'):
+def loss_func(config):
+    loss = config['loss_func'][0]
+    weight = config['loss_func'][1]
+
     if loss == 'ce':
-        weight = torch.Tensor([0.2, 0.8])
+        weight = torch.Tensor(weight).to(device)
         return nn.CrossEntropyLoss(weight=weight)
     elif loss == 'dice':
         return dice_loss
@@ -48,6 +53,9 @@ def loss_func(loss='ce'):
         return bce_loss
     elif loss == 'bce_var':
         return bce_total_variation
+    elif loss == 'bce_weight':
+        weight = torch.Tensor([weight]).to(device)
+        return nn.BCEWithLogitsLoss(pos_weight=weight)
     elif loss == 'focal':
         return focal_loss
     else:
