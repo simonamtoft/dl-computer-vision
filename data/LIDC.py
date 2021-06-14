@@ -5,16 +5,16 @@ import numpy as np
 
 
 class LIDC(torch.utils.data.Dataset):
-  def __init__(self, transform, common_transform, dataset='train', annotator=0, data_path="LIDC-IDRI"):
+  def __init__(self, transform, common_transform, dataset='train', annotator=0, data_path="LIDC"):
     """ dataset = 'train', 'val', 'test'
         annotator = 0, 1, 2, 3
     """
-    annotator = str(annotator)
-
-    data_path += "/LIDC_crops/LIDC_DLCV_version/train/images"
+    # get image paths
+    data_path += f"/LIDC_crops/LIDC_DLCV_version/{dataset}/images"
     self.image_paths = glob(data_path + "/*.png")
 
-    self.seg_paths = [path.replace(".png", "_l" + annotator + ".png") for path in self.image_paths]
+    # get segmentation paths
+    self.seg_paths = [path.replace(".png", "_l" + str(annotator) + ".png") for path in self.image_paths]
     self.seg_paths = [path.replace("images", "lesions") for path in self.seg_paths]
 
     self.transform = transform
