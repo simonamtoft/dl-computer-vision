@@ -16,7 +16,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 def train_medical(model, config, train_loader, val_loader, project_name="tmp"):
     # Initialise wandb
     wandb.init(project=project_name, config=config)
-    
+
     # Set optimizer
     if config["optimizer"] == "adam":
       optimizer = torch.optim.Adam(model.parameters(), lr=config["learning_rate"])
@@ -32,7 +32,10 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp"):
         )
     
     # set loss function
-    loss_fn = loss_func(config['loss_func'])
+    if config['loss_func'] == 'ce':
+        raise Exception('Cannot use normal Cross Entropy loss for this training.\nUse BCE instead.')
+    else:
+        loss_fn = loss_func(config['loss_func'])
 
     # perform training
     for epoch in range(config['epochs']):
@@ -47,8 +50,14 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp"):
             # set parameter gradients to zero
             optimizer.zero_grad()
 
+            # model pass
+            Y_pred = model(X_batch)
+
+            # pad output with zeros such that it fits original shape
+            pad_size = (Y_pred.shape[2] - Y_batch.shape[2])/2
+            Y_pred = F.pad(Y_pred, (pad_size, pad_size, pad_size, pad_size))
+
             # update
-            Y_pred = model(X_batch)         # model pass
             loss = loss_fn(Y_pred, Y_batch) # forward-pass
             loss.backward()                 # backward-pass
             optimizer.step()                # update weights
