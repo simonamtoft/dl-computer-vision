@@ -4,7 +4,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-# import torchgeometry as tgm
+import torchgeometry as tgm
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -15,19 +15,19 @@ def loss_func(output, target, loss='ce'):
             output = torch.reshape(output, (-1, output.shape[1]))
         l_func = nn.CrossEntropyLoss()
     elif loss == 'dice':
-        output = torch.sigmoid(output)
-        num = torch.mean(2 * target * output + 1)
-        den = torch.mean(target + output + 1)
-        return 1 - (num / den)
-        # l_func = tgm.losses.DiceLoss()
+        # output = torch.sigmoid(output)
+        # num = torch.mean(2 * target * output + 1)
+        # den = torch.mean(target + output + 1)
+        # return 1 - (num / den)
+        l_func = tgm.losses.DiceLoss()
     elif loss == 'focal':
-        gamma = 2
-        output = torch.clamp(torch.sigmoid(output), 1e-8, 1-1e-8)
-        term1 = (1 - output)**gamma * target * torch.log(output)
-        term2 = (1 - target) * torch.log(1 - output)
-        return -torch.mean(term1 + term2)
-        # l_func = tgm.losses.FocalLoss(alpha=0.5, gamma=2.0, reduction='mean')
-    return l_func(output, target)
+        # gamma = 2
+        # output = torch.clamp(torch.sigmoid(output), 1e-8, 1-1e-8)
+        # term1 = (1 - output)**gamma * target * torch.log(output)
+        # term2 = (1 - target) * torch.log(1 - output)
+        # return -torch.mean(term1 + term2)
+        l_func = tgm.losses.FocalLoss(alpha=0.5, gamma=2.0, reduction='mean')
+    return l_func
 
 
 def train(model, config, project_name, train_loader, test_loader, n_train, n_test):
