@@ -1,7 +1,6 @@
 # Compute different performance metrics.
 # Formulas found here: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4614595/
 import torch
-import numpy as np
 
 
 def compute_dice(pred, anno):
