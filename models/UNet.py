@@ -49,7 +49,7 @@ class UNet(nn.Module):
         self.dec_conv.append(nn.Sequential(
             nn.Conv2d(2*dec_dims[i], dec_dims[i], kernel_size=3, padding=1),
             nn.Conv2d(dec_dims[i], n_labels, kernel_size=3, padding=1),
-            nn.Conv2d(n_labels, n_labels, kernel_size=1, padding=1)
+            nn.Conv2d(n_labels, n_labels, kernel_size=1, padding=0)
         ))
         self.dec_upsample.append(
             nn.ConvTranspose2d(dec_dims[i], dec_dims[i], kernel_size=4, stride=2)
