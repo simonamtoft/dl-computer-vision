@@ -88,7 +88,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
         model.eval()  # testing mode
         X_val, Y_val = next(iter(val_loader))
         with torch.no_grad():
-            Y_hat = F.sigmoid(model(X_val.to(device))).detach().cpu()
+            Y_hat = torch.sigmoid(model(X_val.to(device))).detach().cpu()
 
         # If we have multiple annotations loaded
         if Y_val.ndim > 4:

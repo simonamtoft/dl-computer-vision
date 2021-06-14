@@ -10,6 +10,7 @@ def dice_loss(y_pred, y_real):
 
 
 def bce_loss(y_pred, y_real):
+    y_pred = torch.sigmoid(y_pred)
     return torch.mean(y_pred - y_real*y_pred + torch.log(1 + torch.exp(-y_pred)))
 
 
