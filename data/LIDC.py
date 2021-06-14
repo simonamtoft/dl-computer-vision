@@ -6,12 +6,12 @@ from torchvision.transforms import ToTensor
 import os
 
 class LIDC(torch.utils.data.Dataset):
-  def __init__(self, transform, common_transform, dataset='train', annotator=0, data_path="LIDC"):
+  def __init__(self, transform, common_transform, split='train', annotator=0, data_path="LIDC"):
     """ dataset = 'train', 'val', 'test'
         annotator = 0, 1, 2, 3
     """
     # get image paths
-    data_path += f"{dataset}/images"
+    data_path += f"{split}/images"
     self.image_paths = glob(data_path + "/*.png")
 
     # get segmentation paths
@@ -39,8 +39,11 @@ class LIDC(torch.utils.data.Dataset):
 
 
 class LIDC_CLDV(torch.utils.data.Dataset):
-  def __init__(self, split="train", transform=ToTensor(), data_path="LIDC_crops/LIDC_DLCV_version", annotator=-1):
+  def __init__(self, transform, common_transform, split="train", data_path="LIDC_crops/LIDC_DLCV_version", annotator=-1):
     self.transform = transform
+    self.common_transform = common_transform
+
+    # Get paths
     data_path = os.path.join(data_path, split)
     self.image_paths = glob(data_path + "/images/*.png")
     if annotator == -1:
