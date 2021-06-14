@@ -9,7 +9,7 @@ class UNetSimple(nn.Module):
         super(UNetSimple, self).__init__()
 
         # encoder (downsampling)
-        self.enc_conv0 = nn.Conv2d(3, 64, 3, padding=1)
+        self.enc_conv0 = nn.Conv2d(1, 64, 3, padding=1)
         self.pool0 = nn.Conv2d(64, 64, 2, padding=0, stride=2)
         self.enc_conv1 = nn.Conv2d(64, 64, 3, padding=1)
         self.pool1 = nn.Conv2d(64, 64, 2, padding=0, stride=2)
