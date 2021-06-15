@@ -85,8 +85,6 @@ def train_anno_ensemble(config, train_loader, val_loader, project_name, plotting
             for i in range(4):
                 with torch.no_grad():
                     output = models[i](X_val)
-
-                output = pad_output(output, Y_val[:, i, :, :])
                 val_losses[i] += loss_fn(output, Y_val[:, i, :, :]).cpu().item() / len(val_loader)
 
         # Plot annotations against model predictions on validation data
@@ -177,7 +175,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
     elif config["optimizer"] == "sgd":
         optimizer = torch.optim.SGD(model.parameters(), lr=config["learning_rate"])
     else: 
-        raise Exception('Optimizer not implemented. Chose "adam" or "sgd".')
+        raise Exception('Optimizer not implemented. Choose "adam" or "sgd".')
     
     # set learning rate scheduler
     if config['step_lr'][0]:
@@ -199,23 +197,21 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
         # Training pass
         avg_loss = 0
         metrics_train = torch.tensor([0, 0, 0, 0, 0])
-        for X_batch, Y_batch in train_loader:
-            X_batch = X_batch.to(device)
-            Y_batch = Y_batch.to(device)
-
-            # If we have multiple annotations loaded
-            if Y_batch.ndim > 4:
-                Y_batch = Y_batch[:, 0, :, :]
+        for X_train, Y_train in train_loader:
+            X_train, Y_train = X_train.to(device), Y_train.to(device)
 
             # set parameter gradients to zero
             optimizer.zero_grad()
 
             # model pass
-            Y_pred = model(X_batch)
+            Y_pred = model(X_train)
+
+            # fix some dimensionality
+            Y_train = remove_anno_dim(Y_train)
+            Y_pred = pad_output(Y_pred, Y_train)
             
             # update
-            Y_pred = pad_output(Y_pred, Y_batch)
-            loss = loss_fn(Y_pred, Y_batch) # forward-pass
+            loss = loss_fn(Y_pred, Y_train) # forward-pass
             loss.backward()                 # backward-pass
             optimizer.step()                # update weights
 
@@ -223,7 +219,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             avg_loss += loss.item() / len(train_loader)
 
             if epoch == config['epochs']-1:
-                metrics_train = update_metrics(metrics_train, Y_pred, Y_batch, len(train_loader))
+                metrics_train = update_metrics(metrics_train, Y_pred, Y_train, len(train_loader))
         
         # Step the learning rate
         if config['step_lr'][0]:
@@ -237,14 +233,14 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
         for X_val, Y_val in val_loader:
             X_val, Y_val = X_val.to(device), Y_val.to(device)
             with torch.no_grad():
-                output = model(X_val)
+                Y_pred = model(X_val)
 
-            # If we have multiple annotations loaded
-            if Y_val.ndim > 4:
-                Y_val = Y_val[:, 0, :, :]
+            # fix some dimensionality
+            Y_val = remove_anno_dim(Y_val)
+            Y_pred = pad_output(Y_pred, Y_val)
             
-            output = pad_output(output, Y_val)
-            val_loss += loss_fn(output, Y_val).cpu().item() / len(val_loader)
+            # Compute loss
+            val_loss += loss_fn(Y_pred, Y_val).cpu().item() / len(val_loader)
 
         # Plot annotations against model predictions on validation data
         if plotting:
@@ -253,10 +249,8 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             with torch.no_grad():
                 Y_hat = torch.sigmoid(model(X_val.to(device))).detach().cpu()
             
-            # If we have multiple annotations loaded
-            if Y_val.ndim > 4:
-                Y_val = Y_val[:, 0, :, :]
-            
+            # fix some dimensionality
+            Y_val = remove_anno_dim(Y_val)
             Y_hat = pad_output(Y_hat, Y_val)
 
             if epoch == config['epochs']-1:
@@ -416,5 +410,6 @@ def update_metrics(metrics, y_pred, y_real, n):
     return metrics
     
 
-    
-
+def remove_anno_dim(y_real):
+    if y_real.ndim > 4:
+        y_real = y_real[:, 0, :, :]
