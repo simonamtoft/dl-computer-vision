@@ -2,8 +2,6 @@ from tqdm import tqdm
 import wandb
 import numpy as np
 import torch
-# import torch.nn as nn
-import torch.nn.functional as F
 from IPython.display import clear_output
 import matplotlib.pyplot as plt
 
@@ -174,6 +172,11 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             X_val, Y_val = X_val.to(device), Y_val.to(device)
             with torch.no_grad():
                 output = model(X_val)
+
+            # If we have multiple annotations loaded
+            if Y_val.ndim > 4:
+                Y_val = Y_val[:, 0, :, :]
+            
             val_loss += loss_fn(output, Y_val).cpu().item() / len(val_loader)
 
         # Plot annotations against model predictions on validation data
