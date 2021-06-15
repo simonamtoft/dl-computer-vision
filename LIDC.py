@@ -25,7 +25,7 @@ else:
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 config = {
-    'epochs': 20,
+    'epochs': 15,
     'batch_size': 384,
     'learning_rate': 1e-4,
     'optimizer': 'adam',
@@ -35,7 +35,7 @@ config = {
     'channels': [64, 64],
     'n_convs': 3,
     'padding': 1,
-    'step_lr': [True, 1, 0.95],
+    'step_lr': [True, 1, 0.975],
 }
 
 if not os.path.exists('./LIDC_crops'):
