@@ -24,7 +24,7 @@ def compute_iou(pred, anno):
     B = anno == 1
     C = torch.sum((A & B).view(BATCH_SIZE,-1),dim=1)
     D = torch.sum((A | B).view(BATCH_SIZE,-1),dim=1)
-    nan_idx = D==1
+    nan_idx = D == 0
 
     IoU = C/D
     IoU[nan_idx] = 0
