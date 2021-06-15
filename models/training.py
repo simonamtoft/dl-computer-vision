@@ -37,6 +37,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
     loss_fn = loss_func(config)
 
     # perform training
+    clear_output(wait=True)
     for epoch in range(config['epochs']):
         print(f"* Epoch {epoch+1}/{config['epochs']}")
 
