@@ -253,8 +253,6 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             Y_val = remove_anno_dim(Y_val)
             # Y_hat = pad_output(Y_hat, Y_val)
 
-            if epoch == config['epochs']-1:
-                metrics_val = update_metrics(metrics_val, Y_hat, Y_val, len(val_loader))
             
             # Plot
             clear_output(wait=True)
@@ -277,6 +275,9 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             else: 
                 plt.savefig(f"fig{epoch+1}.png", transparent=True)
                 plt.close()
+        
+        if epoch == config['epochs']-1:
+            metrics_val = update_metrics(metrics_val, Y_hat, Y_val, len(val_loader))
         
         # save loss in dicts
         train_dict['loss'].append(avg_loss)
