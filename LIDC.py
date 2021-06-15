@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 from torchsummary import summary
 from torchvision.transforms import ToTensor
 from torch.utils.data import DataLoader, ConcatDataset
-from models import loss_func, UNet, train
+from models import loss_func, UNet, train_medical
 from data import LIDC, LIDC_CLDV
 
 if torch.cuda.is_available():
@@ -27,15 +27,15 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 config = {
     'epochs': 20,
-    'batch_size': 64,
+    'batch_size': 256,
     'learning_rate': 1e-3,
     'optimizer': 'adam',
-    'loss_func': 'bce',
+    'loss_func': 'bce_weighted',
     'batch_norm': False,
     'dropout': 0,
     'channels': [64, 64],
     'n_convs': 3,
-    'step_lr': [True, 1, 0.8],
+    'step_lr': [False, 1, 0.8],
 }
 
 if not os.path.exists('./LIDC_crops'):
@@ -47,8 +47,8 @@ if not os.path.exists('./LIDC_crops'):
         zip.extractall()
 
 
-data_tr = DataLoader(LIDC_CLDV(split="train", annotator=0), batch_size=config["batch_size"], shuffle=True, num_workers=2)
-data_val = DataLoader(LIDC_CLDV(split="val", annotator=0), batch_size=config["batch_size"], shuffle=False, num_workers=2)
+data_tr =  DataLoader(LIDC_CLDV(split="train", annotator=2, transform="", common_transform=""), batch_size=config["batch_size"], shuffle=True,  num_workers=2)
+data_val = DataLoader(LIDC_CLDV(split="val",   annotator=2, transform="", common_transform=""), batch_size=config["batch_size"], shuffle=False, num_workers=2)
 
 model = UNet(config=config).to(device)
 
@@ -74,4 +74,4 @@ def train(model, opt, loss_fn, epochs, data_tr, data_val):
             avg_loss += loss / len(data_tr)
         print(' - loss: %f' % avg_loss)
 
-train(model, torch.optim.Adam(model.parameters(), config["loss_func"]), loss_func(config["loss_func"]), config["epochs"], data_tr, data_val)
+train_medical(model, config, data_tr, data_val, "test", True)
