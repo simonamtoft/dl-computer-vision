@@ -23,14 +23,14 @@ class UNet(nn.Module):
 
             self.enc_conv.append(nn.Sequential(*module_list))
             self.enc_pool.append(
-                 nn.Conv2d(enc_dims[i], enc_dims[i], kernel_size=2, stride=2)
+                 nn.Conv2d(enc_dims[i], 2*enc_dims[i], kernel_size=2, stride=2)
             )
 
         # bottleneck
         module_list = []
         for _ in range(config['n_convs']):
             module_list.append(nn.Conv2d(
-                enc_dims[i], enc_dims[i], kernel_size=3, padding=config['padding']
+                2*enc_dims[i], 2*enc_dims[i], kernel_size=3, padding=config['padding']
             ))
             module_list.append(nn.ReLU())
         self.bottleneck = nn.Sequential(*module_list)
