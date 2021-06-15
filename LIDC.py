@@ -26,10 +26,10 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 config = {
     'epochs': 15,
-    'batch_size': 384,
+    'batch_size': 128,
     'learning_rate': 1e-4,
     'optimizer': 'adam',
-    'loss_func': ['bce_weight', [1]],
+    'loss_func': ['bce_weight', [10]],
     'batch_norm': True,
     'dropout': 0.15,
     'channels': [64, 64],
