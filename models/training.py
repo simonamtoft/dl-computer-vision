@@ -96,10 +96,10 @@ def train_anno_ensemble(config, train_loader, val_loader, project_name, plotting
                 Y_hats = torch.stack([torch.sigmoid(models[i](X_val.to(device))).detach() for i in range(4)], dim=1).cpu()
             
             # 
-            Y_hats = torch.std(Y_hats, axis=1)
-            Y_val = torch.std(Y_val, axis=1)
-            # Y_hats = torch.mean(Y_hats, axis=1)
-            # Y_val = torch.mean(Y_val, axis=1)
+            Y_hats_std = torch.std(Y_hats, axis=1)
+            Y_val_std = torch.std(Y_val, axis=1)
+            Y_hats_mean = torch.mean(Y_hats, axis=1)
+            Y_val_mean = torch.mean(Y_val, axis=1)
 
             # Show plots
             clear_output(wait=True)
@@ -109,11 +109,11 @@ def train_anno_ensemble(config, train_loader, val_loader, project_name, plotting
                 ax[0,k].set_title('Real data')
                 ax[0,k].axis('off')
 
-                ax[1,k].imshow(Y_hats[k, 0], cmap='hot')
+                ax[1,k].imshow(Y_hats_std[k, 0], cmap='hot')
                 ax[1,k].set_title('Ensemble Std')
                 ax[1,k].axis('off')
 
-                ax[2,k].imshow(Y_val[k, 0], cmap='hot')
+                ax[2,k].imshow(Y_val_std[k, 0], cmap='hot')
                 ax[2,k].set_title('Segmentation Std')
                 ax[2,k].axis('off')
             plt.suptitle('%d / %d - loss: %f' % (epoch+1, config['epochs'], np.mean(avg_losses)))
@@ -129,11 +129,11 @@ def train_anno_ensemble(config, train_loader, val_loader, project_name, plotting
                 ax[0,k].set_title('Real data')
                 ax[0,k].axis('off')
 
-                ax[1,k].imshow(torch.mean(Y_hats, axis=1)[k, 0], cmap='hot')
+                ax[1,k].imshow(Y_hats_mean[k, 0], cmap='hot')
                 ax[1,k].set_title('Ensemble Mean')
                 ax[1,k].axis('off')
 
-                ax[2,k].imshow(torch.mean(Y_val, axis=1)[k, 0], cmap='hot')
+                ax[2,k].imshow(Y_val_mean[k, 0], cmap='hot')
                 ax[2,k].set_title('Segmentation Mean')
                 ax[2,k].axis('off')
             plt.suptitle('%d / %d - loss: %f' % (epoch+1, config['epochs'], np.mean(avg_losses)))
