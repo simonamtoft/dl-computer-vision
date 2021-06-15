@@ -86,10 +86,8 @@ def train_anno_ensemble(config, train_loader, val_loader, project_name, plotting
                 with torch.no_grad():
                     output = models[i](X_val)
 
-                Y_val = Y_val[:, i, :, :]
-                
-                output = pad_output(output, Y_val)
-                val_losses[i] += loss_fn(output, Y_val).cpu().item() / len(val_loader)
+                output = pad_output(output, Y_val[:, i, :, :])
+                val_losses[i] += loss_fn(output, Y_val[:, i, :, :]).cpu().item() / len(val_loader)
 
         # Plot annotations against model predictions on validation data
         if plotting:
