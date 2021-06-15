@@ -2,15 +2,18 @@
 # Formulas found here: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4614595/
 import torch
 
-
-def compute_dice(pred, anno, batch_size):
-    # Ensure some stability
-    pred = torch.clamp(torch.sigmoid(pred), 1e-8, 1-1e-8)
-    
+# pred, anno, batch_size
+def compute_dice(TP, FP, FN): 
     # Compute dice
-    num = torch.mean((2 * anno * pred + 1).view(batch_size, -1), dim=1)
-    den = torch.mean((anno + pred + 1).view(batch_size, -1), dim=1)
-    dice = 1 - (num / den)
+    # num = torch.mean((2 * anno * pred + 1).view(batch_size, -1), dim=1)
+    # den = torch.mean((anno + pred + 1).view(batch_size, -1), dim=1)
+    # dice = 1 - (num / den)
+    dice = 2 * TP / (2 * TP + FP + FN)
+
+    # Stability
+    nan_idx = (2 * TP + FP + FN) == 0
+    dice[nan_idx] = 0
+
     return torch.mean(dice)
 
 
