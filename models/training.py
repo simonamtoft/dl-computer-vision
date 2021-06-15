@@ -413,3 +413,4 @@ def update_metrics(metrics, y_pred, y_real, n):
 def remove_anno_dim(y_real):
     if y_real.ndim > 4:
         y_real = y_real[:, 0, :, :]
+    return y_real
