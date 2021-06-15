@@ -46,7 +46,7 @@ class UNet(nn.Module):
                 module_list = append_layer(module_list, dec_dims[i], dec_dims[i], config)            
             self.dec_conv.append(nn.Sequential(*module_list))
             self.dec_upsample.append(
-                nn.ConvTranspose2d(dec_dims[i], dec_dims[i], kernel_size=4, stride=2, padding=1)
+                nn.ConvTranspose2d(dec_dims[i], 2*dec_dims[i-1], kernel_size=4, stride=2, padding=1)
             )
         # final layer is without ReLU activation.
         self.dec_conv.append(nn.Sequential(
