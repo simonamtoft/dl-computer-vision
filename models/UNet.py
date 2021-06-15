@@ -37,6 +37,7 @@ class UNet(nn.Module):
 
         # decoder (upsampling)
         dec_dims = [*channels]
+        dec_dims.reverse()
         self.dec_conv = nn.ModuleList([])
         self.dec_upsample = nn.ModuleList([])
         for i in range(1, len(dec_dims)):
