@@ -53,8 +53,10 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
     for epoch in range(config['epochs']):
         print(f"* Epoch {epoch+1}/{config['epochs']}")
 
-        avg_loss = 0
         model.train()
+
+        # Training pass
+        avg_loss = 0
         for X_batch, Y_batch in train_loader:
             X_batch = X_batch.to(device)
             Y_batch = Y_batch.to(device)
@@ -77,23 +79,32 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             # calculate metrics to show the user
             avg_loss += loss.item() / len(train_loader)
         
-        # print some metrics
-        print(' - loss: %f' % avg_loss)
-
+        # Step the learning rate
         if config['step_lr'][0]:
             scheduler.step()
 
-        # show intermediate results
         model.eval()
-        X_val, Y_val = next(iter(val_loader))
-        with torch.no_grad():
-            Y_hat = torch.sigmoid(model(X_val.to(device))).detach().cpu()
 
-        # If we have multiple annotations loaded
-        if Y_val.ndim > 4:
-            Y_val = Y_val[:, 0, :, :]
+        # Compute validation loss
+        val_loss = 0
+        for X_val, Y_val in val_loader:
+            X_val, Y_val = X_val.to(device), Y_val.to(device)
+            with torch.no_grad():
+                output = model(X_val)
+            val_loss += loss_func(output, Y_val).cpu().item() / len(val_loader)
 
+        # Plot annotations against model predictions on validation data
         if plotting:
+            # Get some validation data
+            X_val, Y_val = next(iter(val_loader))
+            with torch.no_grad():
+                Y_hat = torch.sigmoid(model(X_val.to(device))).detach().cpu()
+            
+            # If we have multiple annotations loaded
+            if Y_val.ndim > 4:
+                Y_val = Y_val[:, 0, :, :]
+            
+            # Plot
             clear_output(wait=True)
             f, ax = plt.subplots(3, 6, figsize=(14, 6))
             for k in range(6):
@@ -114,6 +125,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
         # log to weight & bias
         wandb.log({
             "train_loss": avg_loss,
+            "valid_loss": val_loss,
         })
     
     # finish run
