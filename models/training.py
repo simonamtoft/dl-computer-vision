@@ -76,18 +76,18 @@ def train_ensemble(config, train_loader, val_loader, project_name, plotting=True
             
             # Show plots
             clear_output(wait=True)
-            f, ax = plt.subplots(3, 6, figsize=(14, 6))
+            f, ax = plt.subplots(4, 6, figsize=(14, 6))
             for k in range(6):
                 ax[0,k].imshow(X_val[k, 0].numpy(), cmap='gray')
                 ax[0,k].set_title('Real data')
                 ax[0,k].axis('off')
 
-                ax[1,k].imshow(torch.mean(Y_hats, axis=1)[k, 0], cmap='hot')
-                ax[1,k].set_title('Mean Ensemble Output')
+                ax[1,k].imshow(torch.std(Y_hats, axis=1)[k, 0], cmap='hot')
+                ax[1,k].set_title('Ensemble Std')
                 ax[1,k].axis('off')
 
-                ax[2,k].imshow(torch.mean(Y_val, axis=1)[k, 0], cmap='hot')
-                ax[2,k].set_title('Mean Real Segmentation')
+                ax[2,k].imshow(torch.std(Y_val, axis=1)[k, 0], cmap='hot')
+                ax[2,k].set_title('Segmentation Std')
                 ax[2,k].axis('off')
             plt.suptitle('%d / %d - loss: %f' % (epoch+1, config['epochs'], np.mean(avg_losses)))
             if not save_fig:
@@ -98,7 +98,10 @@ def train_ensemble(config, train_loader, val_loader, project_name, plotting=True
 
         # log to weight & bias
         wandb.log({
-            "train_loss": avg_losses,
+            "train_loss0": avg_losses[0],
+            "train_loss1": avg_losses[1],
+            "train_loss2": avg_losses[2],
+            "train_loss3": avg_losses[3],
         })
     
     # finish run
