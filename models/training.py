@@ -12,7 +12,17 @@ from models import UNet
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-def train_ensemble(config, train_loader, val_loader, project_name, plotting=True, save_fig=False):
+def train_ensemble(N, config, train_loader, val_loader, project_name, plotting=True, save_fig=False):
+    models = []
+    for i in range(N):
+        print(f"\nTrain model {i+1}:\n")
+        model = UNet(config).to(device)
+        train_medical(model, config, train_loader, val_loader, project_name, plotting, save_fig)
+        models.append(model)
+    return models
+
+
+def train_anno_ensemble(config, train_loader, val_loader, project_name, plotting=True, save_fig=False):
     wandb.init(project=project_name, config=config)
     
     # Define four models
