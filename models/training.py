@@ -174,7 +174,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             X_val, Y_val = X_val.to(device), Y_val.to(device)
             with torch.no_grad():
                 output = model(X_val)
-            val_loss += loss_func(output, Y_val).cpu().item() / len(val_loader)
+            val_loss += loss_fn(output, Y_val).cpu().item() / len(val_loader)
 
         # Plot annotations against model predictions on validation data
         if plotting:
