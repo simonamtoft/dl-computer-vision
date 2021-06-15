@@ -208,7 +208,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
 
             # fix some dimensionality
             Y_train = remove_anno_dim(Y_train)
-            Y_pred = pad_output(Y_pred, Y_train)
+            # Y_pred = pad_output(Y_pred, Y_train)
             
             # update
             loss = loss_fn(Y_pred, Y_train) # forward-pass
@@ -237,7 +237,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
 
             # fix some dimensionality
             Y_val = remove_anno_dim(Y_val)
-            Y_pred = pad_output(Y_pred, Y_val)
+            # Y_pred = pad_output(Y_pred, Y_val)
             
             # Compute loss
             val_loss += loss_fn(Y_pred, Y_val).cpu().item() / len(val_loader)
@@ -251,7 +251,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             
             # fix some dimensionality
             Y_val = remove_anno_dim(Y_val)
-            Y_hat = pad_output(Y_hat, Y_val)
+            # Y_hat = pad_output(Y_hat, Y_val)
 
             if epoch == config['epochs']-1:
                 metrics_val = update_metrics(metrics_val, Y_hat, Y_val, len(val_loader))
@@ -394,9 +394,9 @@ def train(model, config, project_name, train_loader, test_loader, n_train, n_tes
     return out_dict
 
 
-def pad_output(Y_pred, Y_batch):
-    pad_size = (Y_batch.shape[2] - Y_pred.shape[2])//2
-    return F.pad(Y_pred, (pad_size, pad_size, pad_size, pad_size))
+def pad_output(y_pred, y_real):
+    pad_size = (y_real.shape[2] - y_pred.shape[2])//2
+    return F.pad(y_pred, (pad_size, pad_size, pad_size, pad_size))
 
 
 def update_metrics(metrics, y_pred, y_real, n):
