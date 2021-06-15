@@ -1,3 +1,4 @@
+from torch._C import long
 from tqdm import tqdm
 import wandb
 import numpy as np
@@ -405,7 +406,8 @@ def update_metrics(metrics, y_pred, y_real, n):
     y_pred = y_pred > 0.5
     
     # Update metrics
-    metrics += compute_metrics(y_pred, y_real.cpu())
+    new_metrics = compute_metrics(y_pred, y_real.cpu())
+    metrics = metrics + new_metrics.long()
     metrics /= n
     return metrics
     
