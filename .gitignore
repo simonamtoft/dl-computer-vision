@@ -133,3 +133,8 @@ dmypy.json
 .vscode
 LIDC_crops/
 LIDC_CLDV.zip
+wandb
+PH2_Dataset_images
+*.png
+*.err
+*.out
