@@ -16,8 +16,11 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def train_ensemble(config, train_loader, val_loader, project_name, plotting=True, save_fig=False):
     wandb.init(project=project_name, config=config)
-    models = [UNet(config).to(device) for i in range(4)]
-    # Set optimizer
+    
+    # Define four models
+    models = [UNet(config).to(device) for _ in range(4)]
+    
+    # Set optimizers for each model
     if config["optimizer"] == "adam":
         optimizers = [torch.optim.Adam(models[i].parameters(), lr=config["learning_rate"]) for i in range(4)]
     elif config["optimizer"] == "sgd":
@@ -25,7 +28,7 @@ def train_ensemble(config, train_loader, val_loader, project_name, plotting=True
     else: 
         raise Exception('Optimizer not implemented. Chose "adam" or "sgd".')
     
-    # set learning rate scheduler
+    # set learning rate scheduler for each model
     if config['step_lr'][0]:
         schedulers = [torch.optim.lr_scheduler.StepLR(
             optimizers[i], 
@@ -54,26 +57,26 @@ def train_ensemble(config, train_loader, val_loader, project_name, plotting=True
                 Y_pred = models[i](X_batch)
 
                 # update
-                loss = loss_fn(Y_pred, Y_batch[:,i,:,:]) # forward-pass
-                loss.backward()                 # backward-pass
-                optimizers[i].step()            # update weights
+                loss = loss_fn(Y_pred, Y_batch[:, i, :, :]) # forward-pass
+                loss.backward()                             # backward-pass
+                optimizers[i].step()                        # update weights
 
                 # calculate metrics to show the user
                 avg_losses[i] += loss.item() / len(train_loader)
-        
-        # print some metrics
-        [print(' - loss: %f' % avg_losses[i]) for i in range(4)]
 
+        # Step the learning rate
         if config['step_lr'][0]:
             [schedulers[i].step() for i in range(4)]
 
-        # show intermediate results
         [models[i].eval() for i in range(4)]
-        X_val, Y_val = next(iter(val_loader))
-        with torch.no_grad():
-            Y_hats = torch.stack([torch.sigmoid(models[i](X_val.to(device))).detach() for i in range(4)], dim=1).cpu()
 
+        # Plot annotations against model predictions on validation data
         if plotting:
+            X_val, Y_val = next(iter(val_loader))
+            with torch.no_grad():
+                Y_hats = torch.stack([torch.sigmoid(models[i](X_val.to(device))).detach() for i in range(4)], dim=1).cpu()
+            
+            # Show plots
             clear_output(wait=True)
             f, ax = plt.subplots(4, 6, figsize=(14, 6))
             for k in range(6):
@@ -107,6 +110,7 @@ def train_ensemble(config, train_loader, val_loader, project_name, plotting=True
     wandb.finish()
     return models
 
+
 def train_medical(model, config, train_loader, val_loader, project_name="tmp", plotting=True, save_fig=False):
     # Initialise wandb
     wandb.init(project=project_name, config=config)
@@ -135,8 +139,10 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
     for epoch in range(config['epochs']):
         print(f"* Epoch {epoch+1}/{config['epochs']}")
 
-        avg_loss = 0
         model.train()
+
+        # Training pass
+        avg_loss = 0
         for X_batch, Y_batch in train_loader:
             X_batch = X_batch.to(device)
             Y_batch = Y_batch.to(device)
@@ -159,23 +165,32 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             # calculate metrics to show the user
             avg_loss += loss.item() / len(train_loader)
         
-        # print some metrics
-        print(' - loss: %f' % avg_loss)
-
+        # Step the learning rate
         if config['step_lr'][0]:
             scheduler.step()
 
-        # show intermediate results
         model.eval()
-        X_val, Y_val = next(iter(val_loader))
-        with torch.no_grad():
-            Y_hat = torch.sigmoid(model(X_val.to(device))).detach().cpu()
 
-        # If we have multiple annotations loaded
-        if Y_val.ndim > 4:
-            Y_val = Y_val[:, 0, :, :]
+        # Compute validation loss
+        val_loss = 0
+        for X_val, Y_val in val_loader:
+            X_val, Y_val = X_val.to(device), Y_val.to(device)
+            with torch.no_grad():
+                output = model(X_val)
+            val_loss += loss_fn(output, Y_val).cpu().item() / len(val_loader)
 
+        # Plot annotations against model predictions on validation data
         if plotting:
+            # Get some validation data
+            X_val, Y_val = next(iter(val_loader))
+            with torch.no_grad():
+                Y_hat = torch.sigmoid(model(X_val.to(device))).detach().cpu()
+            
+            # If we have multiple annotations loaded
+            if Y_val.ndim > 4:
+                Y_val = Y_val[:, 0, :, :]
+            
+            # Plot
             clear_output(wait=True)
             f, ax = plt.subplots(3, 6, figsize=(14, 6))
             for k in range(6):
@@ -200,6 +215,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
         # log to weight & bias
         wandb.log({
             "train_loss": avg_loss,
+            "valid_loss": val_loss,
         })
     
     # finish run
