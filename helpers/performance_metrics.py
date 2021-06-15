@@ -1,6 +1,8 @@
 # Compute different performance metrics.
 # Formulas found here: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4614595/
 import torch
+import numpy as np
+
 
 # pred, anno, batch_size
 def compute_dice(TP, FP, FN): 
@@ -89,9 +91,9 @@ def compute_metrics(pred, anno):
     FN = torch.sum(((pred == 0) & (anno == 1)).view(batch_size, -1), dim=1)
     
     # Compute performance metrics
-    dice = compute_dice(TP, FP, FN)
-    iou = compute_iou(pred, anno, batch_size)
-    acc = compute_accuracy(TP, TN, FP, FN)
-    sens = compute_sensitivity(TP, FN)
-    spec = compute_specificity(TN, FP)
-    return torch.tensor([dice, iou, acc, sens, spec])
+    dice = compute_dice(TP, FP, FN).numpy()
+    iou = compute_iou(pred, anno, batch_size).numpy()
+    acc = compute_accuracy(TP, TN, FP, FN).numpy()
+    sens = compute_sensitivity(TP, FN).numpy()
+    spec = compute_specificity(TN, FP).numpy()
+    return np.array([dice, iou, acc, sens, spec])
