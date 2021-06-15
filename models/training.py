@@ -234,7 +234,6 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             X_val, Y_val = X_val.to(device), Y_val.to(device)
             with torch.no_grad():
                 Y_pred = model(X_val)
-                Y_hat = torch.sigmoid(Y_pred).detach().cpu()
 
             # fix some dimensionality
             Y_val = remove_anno_dim(Y_val)
@@ -244,7 +243,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             val_loss += loss_fn(Y_pred, Y_val).cpu().item() / len(val_loader)
         
             if epoch == config['epochs']-1:
-                metrics_val = update_metrics(metrics_val, Y_hat, Y_val, len(val_loader))
+                metrics_val = update_metrics(metrics_val, Y_pred, Y_val, len(val_loader))
 
         # Plot annotations against model predictions on validation data
         if plotting:
