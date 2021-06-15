@@ -27,17 +27,16 @@ class UNet(nn.Module):
             )
 
         # bottleneck
-        module_list = [nn.Conv2d(enc_dims[i], 2*enc_dims[i], kernel_size=3, padding=config['padding'])]
+        module_list = [nn.Conv2d(enc_dims[i], enc_dims[i], kernel_size=3, padding=config['padding'])]
         for _ in range(config['n_convs']-1):
             module_list.append(nn.Conv2d(
-                2*enc_dims[i], 2*enc_dims[i], kernel_size=3, padding=config['padding']
+                enc_dims[i], enc_dims[i], kernel_size=3, padding=config['padding']
             ))
             module_list.append(nn.ReLU())
         self.bottleneck = nn.Sequential(*module_list)
 
         # decoder (upsampling)
         dec_dims = [*channels]
-        dec_dims.reverse()
         self.dec_conv = nn.ModuleList([])
         self.dec_upsample = nn.ModuleList([])
         for i in range(1, len(dec_dims)):
@@ -46,7 +45,7 @@ class UNet(nn.Module):
                 module_list = append_layer(module_list, dec_dims[i], dec_dims[i], config)            
             self.dec_conv.append(nn.Sequential(*module_list))
             self.dec_upsample.append(
-                nn.ConvTranspose2d(dec_dims[i-1], dec_dims[i], kernel_size=4, stride=2, padding=1)
+                nn.ConvTranspose2d(dec_dims[i], dec_dims[i], kernel_size=4, stride=2, padding=1)
             )
         # final layer is without ReLU activation.
         self.dec_conv.append(nn.Sequential(
@@ -55,7 +54,7 @@ class UNet(nn.Module):
             # nn.Conv2d(n_labels, n_labels, kernel_size=1)
         ))
         self.dec_upsample.append(
-            nn.ConvTranspose2d(dec_dims[i-1], dec_dims[i], kernel_size=4, stride=2, padding=1)
+            nn.ConvTranspose2d(dec_dims[i], dec_dims[i], kernel_size=4, stride=2, padding=1)
         )
 
     def forward(self, x):
