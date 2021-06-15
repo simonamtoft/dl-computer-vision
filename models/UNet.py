@@ -53,9 +53,9 @@ class UNet(nn.Module):
             nn.Conv2d(dec_dims[i], n_labels, kernel_size=3, padding=config['padding']),
             # nn.Conv2d(n_labels, n_labels, kernel_size=1)
         ))
-        # self.dec_upsample.append(
-        #     nn.ConvTranspose2d(dec_dims[i], dec_dims[i], kernel_size=4, stride=2)
-        # )
+        self.dec_upsample.append(
+            nn.ConvTranspose2d(dec_dims[i], dec_dims[i], kernel_size=4, stride=2)
+        )
 
     def forward(self, x):
         enc = x # x is input of first encoder
