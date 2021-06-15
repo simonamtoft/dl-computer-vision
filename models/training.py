@@ -286,6 +286,8 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
         wandb.log({
             "train_loss": avg_loss,
             "valid_loss": val_loss,
+            "metrics_train": metrics_train,
+            "metrics_val": metrics_val,
         })
     
     # Add metrics to dicts
