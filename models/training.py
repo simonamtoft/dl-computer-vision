@@ -9,8 +9,20 @@ import matplotlib.pyplot as plt
 
 from .losses import loss_func
 from helpers import compute_metrics
+from models import UNet
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+
+def train_ensemble(config, train_loader, val_loader, project_name, plotting):
+    model_1 = UNet(config).to(device)
+    model_2 = UNet(config).to(device)
+    model_3 = UNet(config).to(device)
+    model_4 = UNet(config).to(device)
+
+    # marc implement training ty
+
+    return model_1, model_2, model_3, model_4
 
 
 def train_medical(model, config, train_loader, val_loader, project_name="tmp", plotting=True):
