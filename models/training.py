@@ -34,10 +34,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
         )
     
     # set loss function
-    if config['loss_func'] == 'ce':
-        raise Exception('Cannot use normal Cross Entropy loss for this training.\nUse BCE instead.')
-    else:
-        loss_fn = loss_func(config['loss_func'])
+    loss_fn = loss_func(config)
 
     # perform training
     for epoch in range(config['epochs']):

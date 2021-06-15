@@ -41,8 +41,11 @@ def focal_loss(y_pred, y_real, gamma=2):
 
 
 def loss_func(config):
-    loss = config['loss_func'][0]
-    weight = config['loss_func'][1]
+    if len(config['loss_func']) > 1:
+        loss = config['loss_func'][0]
+        weight = config['loss_func'][1]
+    else:
+        loss = config['loss_func']
 
     if loss == 'ce':
         weight = torch.Tensor(weight).to(device)
