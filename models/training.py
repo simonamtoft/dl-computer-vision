@@ -79,6 +79,16 @@ def train_anno_ensemble(config, train_loader, val_loader, project_name, plotting
 
         [models[i].eval() for i in range(4)]
 
+        val_losses = [0 for _ in range(4)]
+        for X_val, Y_val in val_loader:
+            X_val, Y_val = X_val.to(device), Y_val.to(device)
+            for i in range(4):
+                with torch.no_grad():
+                    output = models[i](X_val)
+
+                output = pad_output(output, Y_val[:, i, :, :])
+                val_losses[i] += loss_fn(output, Y_val[:, i, :, :]).cpu().item() / len(val_loader)
+
         # Plot annotations against model predictions on validation data
         if plotting:
             X_val, Y_val = next(iter(val_loader))
@@ -93,7 +103,7 @@ def train_anno_ensemble(config, train_loader, val_loader, project_name, plotting
 
             # Show plots
             clear_output(wait=True)
-            f, ax = plt.subplots(4, 6, figsize=(14, 6))
+            f, ax = plt.subplots(3, 6, figsize=(14, 6))
             for k in range(6):
                 ax[0,k].imshow(X_val[k, 0].numpy(), cmap='gray')
                 ax[0,k].set_title('Real data')
@@ -110,15 +120,43 @@ def train_anno_ensemble(config, train_loader, val_loader, project_name, plotting
             if not save_fig:
                 plt.show()
             else: 
-                plt.savefig(f"fig{epoch+1}.png", transparent=True)
+                plt.savefig(f"fig{epoch+1}_std.png", transparent=True)
+                plt.close()
+
+            f, ax = plt.subplots(3, 6, figsize=(14, 6))
+            for k in range(6):
+                ax[0,k].imshow(X_val[k, 0].numpy(), cmap='gray')
+                ax[0,k].set_title('Real data')
+                ax[0,k].axis('off')
+
+                ax[1,k].imshow(torch.mean(Y_hats, axis=1)[k, 0], cmap='hot')
+                ax[1,k].set_title('Ensemble Mean')
+                ax[1,k].axis('off')
+
+                ax[2,k].imshow(torch.mean(Y_val, axis=1)[k, 0], cmap='hot')
+                ax[2,k].set_title('Segmentation Mean')
+                ax[2,k].axis('off')
+            plt.suptitle('%d / %d - loss: %f' % (epoch+1, config['epochs'], np.mean(avg_losses)))
+            if not save_fig:
+                plt.show()
+            else: 
+                plt.savefig(f"fig{epoch+1}_mean.png", transparent=True)
                 plt.close()
 
         # log to weight & bias
+        print("Train losses:")
+        print(avg_losses)
+        print("Validation losses:")
+        print(val_losses)
         wandb.log({
             "train_loss0": avg_losses[0],
             "train_loss1": avg_losses[1],
             "train_loss2": avg_losses[2],
             "train_loss3": avg_losses[3],
+            "val_loss0": val_losses[0],
+            "val_loss1": val_losses[1],
+            "val_loss2": val_losses[2],
+            "val_loss3": val_losses[3],
         })
     
     # finish run

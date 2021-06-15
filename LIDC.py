@@ -1,4 +1,3 @@
-# Download data if it does not exist
 import sys
 import os
 import wandb
@@ -16,7 +15,7 @@ import matplotlib.pyplot as plt
 from torchsummary import summary
 from torchvision.transforms import ToTensor
 from torch.utils.data import DataLoader, ConcatDataset
-from models import loss_func, UNet, train_medical
+from models import loss_func, UNet, train_medical, train_ensemble, train_anno_ensemble
 from data import LIDC, LIDC_CLDV
 
 if torch.cuda.is_available():
@@ -27,15 +26,16 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 config = {
     'epochs': 20,
-    'batch_size': 256,
-    'learning_rate': 1e-3,
+    'batch_size': 384,
+    'learning_rate': 1e-4,
     'optimizer': 'adam',
-    'loss_func': 'bce_weighted',
-    'batch_norm': False,
-    'dropout': 0,
+    'loss_func': ['bce_weight', [1]],
+    'batch_norm': True,
+    'dropout': 0.15,
     'channels': [64, 64],
     'n_convs': 3,
-    'step_lr': [False, 1, 0.8],
+    'padding': 1,
+    'step_lr': [True, 1, 0.95],
 }
 
 if not os.path.exists('./LIDC_crops'):
@@ -47,31 +47,14 @@ if not os.path.exists('./LIDC_crops'):
         zip.extractall()
 
 
-data_tr =  DataLoader(LIDC_CLDV(split="train", annotator=2, transform="", common_transform=""), batch_size=config["batch_size"], shuffle=True,  num_workers=2)
-data_val = DataLoader(LIDC_CLDV(split="val",   annotator=2, transform="", common_transform=""), batch_size=config["batch_size"], shuffle=False, num_workers=2)
+data_tr =  DataLoader(LIDC_CLDV(split="train", annotator=-1, transform="", common_transform=""), batch_size=config["batch_size"], shuffle=True,  num_workers=4)
+data_val = DataLoader(LIDC_CLDV(split="val",   annotator=-1, transform="", common_transform=""), batch_size=config["batch_size"], shuffle=False, num_workers=4)
 
-model = UNet(config=config).to(device)
+#model = UNet(config=config).to(device)
+#train_medical(model, config, data_tr, data_val, "test", True, True)
+models = train_anno_ensemble(config, data_tr, data_val, "test", True, True)
 
 
-def train(model, opt, loss_fn, epochs, data_tr, data_val):
-    for epoch in range(epochs):
-        print('* Epoch %d/%d' % (epoch+1, epochs))
-
-        avg_loss = 0
-        model.train()  # train mode
-        for X_batch, Y_batch in data_tr:
-            X_batch = X_batch.to(device)
-            Y_batch = Y_batch.to(device)
-            # set parameter gradients to zero
-            opt.zero_grad()
-            # forward
-            Y_pred = model(X_batch)
-            loss = loss_fn(F.pad(Y_pred, (3,3,3,3)), Y_batch[:,0,:,:])  # forward-pass
-            loss.backward()  # backward-pass
-            opt.step()  # update weights
-
-            # calculate metrics to show the user
-            avg_loss += loss / len(data_tr)
-        print(' - loss: %f' % avg_loss)
-
-train_medical(model, config, data_tr, data_val, "test", True)
+import pickle
+pickle.dump(models, open("./ensemble_models.pickle", "wb+"))
+#model = pickle.load(open("./model.pickle", "rb+"))
