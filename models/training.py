@@ -167,7 +167,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             Y_pred = model(X_batch)
             
             # update
-            pad_output(Y_pred, Y_batch)
+            Y_pred = pad_output(Y_pred, Y_batch)
             loss = loss_fn(Y_pred, Y_batch) # forward-pass
             loss.backward()                 # backward-pass
             optimizer.step()                # update weights
@@ -192,7 +192,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             if Y_val.ndim > 4:
                 Y_val = Y_val[:, 0, :, :]
             
-            pad_output(output, Y_val)
+            output = pad_output(output, Y_val)
             val_loss += loss_fn(output, Y_val).cpu().item() / len(val_loader)
 
         # Plot annotations against model predictions on validation data
@@ -206,7 +206,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             if Y_val.ndim > 4:
                 Y_val = Y_val[:, 0, :, :]
             
-            pad_output(Y_hat, Y_val)
+            Y_hat = pad_output(Y_hat, Y_val)
             
             # Plot
             clear_output(wait=True)
@@ -338,4 +338,4 @@ def train(model, config, project_name, train_loader, test_loader, n_train, n_tes
 
 def pad_output(Y_pred, Y_batch):
     pad_size = (Y_batch.shape[2] - Y_pred.shape[2])//2
-    Y_pred = F.pad(Y_pred, (pad_size, pad_size, pad_size, pad_size))
+    return F.pad(Y_pred, (pad_size, pad_size, pad_size, pad_size))
