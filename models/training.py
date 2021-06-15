@@ -85,6 +85,12 @@ def train_anno_ensemble(config, train_loader, val_loader, project_name, plotting
             with torch.no_grad():
                 Y_hats = torch.stack([torch.sigmoid(models[i](X_val.to(device))).detach() for i in range(4)], dim=1).cpu()
             
+            # 
+            Y_hats = torch.std(Y_hats, axis=1)
+            Y_val = torch.std(Y_val, axis=1)
+            # Y_hats = torch.mean(Y_hats, axis=1)
+            # Y_val = torch.mean(Y_val, axis=1)
+
             # Show plots
             clear_output(wait=True)
             f, ax = plt.subplots(4, 6, figsize=(14, 6))
@@ -93,11 +99,11 @@ def train_anno_ensemble(config, train_loader, val_loader, project_name, plotting
                 ax[0,k].set_title('Real data')
                 ax[0,k].axis('off')
 
-                ax[1,k].imshow(torch.std(Y_hats, axis=1)[k, 0], cmap='hot')
+                ax[1,k].imshow(Y_hats[k, 0], cmap='hot')
                 ax[1,k].set_title('Ensemble Std')
                 ax[1,k].axis('off')
 
-                ax[2,k].imshow(torch.std(Y_val, axis=1)[k, 0], cmap='hot')
+                ax[2,k].imshow(Y_val[k, 0], cmap='hot')
                 ax[2,k].set_title('Segmentation Std')
                 ax[2,k].axis('off')
             plt.suptitle('%d / %d - loss: %f' % (epoch+1, config['epochs'], np.mean(avg_losses)))
@@ -121,6 +127,9 @@ def train_anno_ensemble(config, train_loader, val_loader, project_name, plotting
 
 
 def train_medical(model, config, train_loader, val_loader, project_name="tmp", plotting=True, save_fig=False):
+    train_dict = {'loss': []}
+    val_dict = {'loss': []}
+
     # Initialise wandb
     wandb.init(project=project_name, config=config)
 
@@ -143,7 +152,6 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
     # set loss function
     loss_fn = loss_func(config)
 
-    # perform training
     clear_output(wait=True)
     for epoch in range(config['epochs']):
         print(f"* Epoch {epoch+1}/{config['epochs']}")
@@ -152,6 +160,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
 
         # Training pass
         avg_loss = 0
+        metrics_train = torch.tensor([0, 0, 0, 0, 0])
         for X_batch, Y_batch in train_loader:
             X_batch = X_batch.to(device)
             Y_batch = Y_batch.to(device)
@@ -174,6 +183,9 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
 
             # calculate metrics to show the user
             avg_loss += loss.item() / len(train_loader)
+
+            if epoch == config['epochs']-1:
+                metrics_train = update_metrics(metrics_train, Y_pred, Y_batch)
         
         # Step the learning rate
         if config['step_lr'][0]:
@@ -183,6 +195,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
 
         # Compute validation loss
         val_loss = 0
+        metrics_val = torch.tensor([0, 0, 0, 0, 0])
         for X_val, Y_val in val_loader:
             X_val, Y_val = X_val.to(device), Y_val.to(device)
             with torch.no_grad():
@@ -207,6 +220,9 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
                 Y_val = Y_val[:, 0, :, :]
             
             Y_hat = pad_output(Y_hat, Y_val)
+
+            if epoch == config['epochs']-1:
+                metrics_val = update_metrics(metrics_val, Y_hat, Y_val)
             
             # Plot
             clear_output(wait=True)
@@ -229,6 +245,10 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             else: 
                 plt.savefig(f"fig{epoch+1}.png", transparent=True)
                 plt.close()
+        
+        # save loss in dicts
+        train_dict['loss'].append(avg_loss)
+        val_dict['loss'].append(val_loss)
 
         # log to weight & bias
         wandb.log({
@@ -236,8 +256,14 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             "valid_loss": val_loss,
         })
     
+    # Add metrics to dicts
+    train_dict['metrics'] = metrics_train
+    val_dict['metrics'] = metrics_val
+
+
     # finish run
     wandb.finish()
+    return train_dict, val_dict
 
 
 def train(model, config, project_name, train_loader, test_loader, n_train, n_test):
@@ -339,3 +365,18 @@ def train(model, config, project_name, train_loader, test_loader, n_train, n_tes
 def pad_output(Y_pred, Y_batch):
     pad_size = (Y_batch.shape[2] - Y_pred.shape[2])//2
     return F.pad(Y_pred, (pad_size, pad_size, pad_size, pad_size))
+
+
+def update_metrics(metrics, y_pred, y_real, n_val):
+    # Get predictions
+    y_pred = torch.sigmoid(y_pred).detach().cpu()
+    y_pred = y_pred > 0.5
+    
+    # Update metrics
+    metrics += compute_metrics(y_pred, y_real.cpu())
+    metrics /= n_val
+    return metrics
+    
+
+    
+
