@@ -28,7 +28,7 @@ class UNet(nn.Module):
 
         # bottleneck
         module_list = []
-        for _ in range(config['n_convs']-1):
+        for _ in range(config['n_convs']):
             module_list.append(nn.Conv2d(
                 enc_dims[i], enc_dims[i], kernel_size=3, padding=config['padding']
             ))
