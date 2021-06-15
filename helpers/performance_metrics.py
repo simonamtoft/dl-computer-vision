@@ -94,4 +94,4 @@ def compute_metrics(pred, anno):
     acc = compute_accuracy(TP, TN, FP, FN)
     sens = compute_sensitivity(TP, FN)
     spec = compute_specificity(TN, FP)
-    return (dice, iou, acc, sens, spec)
+    return [dice, iou, acc, sens, spec]
