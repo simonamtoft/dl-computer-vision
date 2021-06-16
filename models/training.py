@@ -412,15 +412,9 @@ def update_metrics(metrics, y_pred, y_real, n):
     y_pred = torch.sigmoid(y_pred).detach().cpu()
     y_pred = y_pred > 0.5
 
-    # print()
-    
     # Update metrics
-    print(metrics)
     upd_metrics = compute_metrics(y_pred, y_real.cpu())
-    print(upd_metrics / n)
     metrics += upd_metrics / n
-    print(metrics)
-    # metrics = torch.div(metrics, n)
     return metrics
     
 
