@@ -243,12 +243,6 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             val_loss += loss_fn(Y_pred, Y_val).cpu().item() / len(val_loader)
         
             if epoch == config['epochs']-1:
-                print('\nVALIDATION\n')
-                print(Y_pred.shape, Y_pred.type())
-                print(Y_val.shape, Y_val.type())
-                print(len(val_loader))
-                print(Y_pred)
-                print(Y_val)
                 metrics_val = update_metrics(metrics_val, Y_pred, Y_val, len(val_loader))
 
         # Plot annotations against model predictions on validation data
@@ -412,11 +406,11 @@ def update_metrics(metrics, y_pred, y_real, n):
     y_pred = torch.sigmoid(y_pred).detach().cpu()
     y_pred = y_pred > 0.5
 
-    print(y_pred)
+    # print()
     
     # Update metrics
     metrics += compute_metrics(y_pred, y_real.cpu())
-    metrics /= n
+    metrics = torch.div(metrics, n)
     return metrics
     
 
