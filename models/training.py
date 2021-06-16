@@ -416,7 +416,7 @@ def update_metrics(metrics, y_pred, y_real, n):
     
     # Update metrics
     metrics += compute_metrics(y_pred, y_real.cpu())
-    metrics = torch.div(metrics, n)
+    # metrics = torch.div(metrics, n)
     return metrics
     
 
