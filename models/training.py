@@ -241,6 +241,9 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             
             # Compute loss
             val_loss += loss_fn(Y_pred, Y_val).cpu().item() / len(val_loader)
+        
+            if epoch == config['epochs']-1:
+                metrics_val = update_metrics(metrics_val, Y_pred, Y_val, len(val_loader))
 
         # Plot annotations against model predictions on validation data
         if plotting:
@@ -252,9 +255,6 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             # fix some dimensionality
             Y_val = remove_anno_dim(Y_val)
             # Y_hat = pad_output(Y_hat, Y_val)
-
-            if epoch == config['epochs']-1:
-                metrics_val = update_metrics(metrics_val, Y_hat, Y_val, len(val_loader))
             
             # Plot
             clear_output(wait=True)
@@ -286,6 +286,8 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
         wandb.log({
             "train_loss": avg_loss,
             "valid_loss": val_loss,
+            "metrics_train": metrics_train,
+            "metrics_val": metrics_val,
         })
     
     # Add metrics to dicts
