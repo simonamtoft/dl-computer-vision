@@ -255,7 +255,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             # Y_hat = pad_output(Y_hat, Y_val)
             
             # Plot
-            # clear_output(wait=True)
+            clear_output(wait=True)
             f, ax = plt.subplots(3, 6, figsize=(14, 6))
             for k in range(6):
                 ax[0,k].imshow(X_val[k, 0].numpy(), cmap='gray')
