@@ -41,10 +41,11 @@ class LIDC(torch.utils.data.Dataset):
 
 
 class LIDC_CLDV(torch.utils.data.Dataset):
-  def __init__(self, transform, common_transform, split="train", data_path="LIDC_crops/LIDC_DLCV_version", annotator=-1):
+  def __init__(self, transform, common_transform, affine=True, split="train", data_path="LIDC_crops/LIDC_DLCV_version", annotator=-1):
     self.transform = transform
     self.common_transform = common_transform
     self.split = split
+    self.affine = affine
 
     # Get paths
     data_path = os.path.join(data_path, split)
@@ -67,7 +68,7 @@ class LIDC_CLDV(torch.utils.data.Dataset):
       'Generates one sample of data'
       image = ToTensor()(Image.open(self.image_paths[idx]))
       segmentations = [ToTensor()(Image.open(annotator[idx])) for annotator in self.lesion_paths]
-      if self.split == "train":
+      if self.split == "train" and self.affine:
         if random.random() > 0.5:
             angle = random.randint(-30, 30)
             image = TF.rotate(image, angle)
