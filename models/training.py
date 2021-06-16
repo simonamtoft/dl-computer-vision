@@ -216,10 +216,9 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             optimizer.step()                # update weights
 
             # calculate metrics to show the user
-            avg_loss += loss.item() / len(train_loader)
-
-            if epoch == config['epochs']-1:
-                metrics_train = update_metrics(metrics_train, Y_pred, Y_train, len(train_loader))
+            n_train = len(train_loader)
+            avg_loss += loss.item() / n_train
+            metrics_train = update_metrics(metrics_train, Y_pred, Y_train, n_train)
         
         # Step the learning rate
         if config['step_lr'][0]:
@@ -239,11 +238,10 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             Y_val = remove_anno_dim(Y_val)
             # Y_pred = pad_output(Y_pred, Y_val)
             
-            # Compute loss
-            val_loss += loss_fn(Y_pred, Y_val).cpu().item() / len(val_loader)
-        
-            if epoch == config['epochs']-1:
-                metrics_val = update_metrics(metrics_val, Y_pred, Y_val, len(val_loader))
+            # Compute loss and metrics
+            n_val = len(val_loader)
+            val_loss += loss_fn(Y_pred, Y_val).cpu().item() / n_val
+            metrics_val = update_metrics(metrics_val, Y_pred, Y_val, n_val)
 
         # Plot annotations against model predictions on validation data
         if plotting:
