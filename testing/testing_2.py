@@ -23,7 +23,7 @@ def test_pass_medical(config, model, test_loader):
             Y_pred = model(X_test)
         
         # fix some dimensionality
-        Y_val = remove_anno_dim(Y_val)
+        Y_test = remove_anno_dim(Y_test)
 
         # Compute loss and metrics
         n_test = len(test_loader)
