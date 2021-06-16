@@ -219,10 +219,8 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             avg_loss += loss.item() / len(train_loader)
 
             if epoch == config['epochs']-1:
-                print('\nTRAINING\n')
-                print(Y_pred.shape, Y_pred.type())
-                print(Y_train.shape, Y_train.type())
-                print(len(train_loader))
+                print(Y_pred)
+                print(Y_train)
                 metrics_train = update_metrics(metrics_train, Y_pred, Y_train, len(train_loader))
         
         # Step the learning rate
@@ -249,8 +247,10 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             if epoch == config['epochs']-1:
                 print('\nVALIDATION\n')
                 print(Y_pred.shape, Y_pred.type())
-                print(Y_train.shape, Y_train.type())
+                print(Y_val.shape, Y_val.type())
                 print(len(val_loader))
+                print(Y_pred)
+                print(Y_val)
                 metrics_val = update_metrics(metrics_val, Y_pred, Y_val, len(val_loader))
 
         # Plot annotations against model predictions on validation data
