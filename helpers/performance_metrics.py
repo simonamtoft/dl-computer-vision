@@ -4,12 +4,8 @@ import torch
 import numpy as np
 
 
-# pred, anno, batch_size
 def compute_dice(TP, FP, FN): 
     # Compute dice
-    # num = torch.mean((2 * anno * pred + 1).view(batch_size, -1), dim=1)
-    # den = torch.mean((anno + pred + 1).view(batch_size, -1), dim=1)
-    # dice = 1 - (num / den)
     dice = 2 * TP / (2 * TP + FP + FN)
 
     # Stability
@@ -83,8 +79,9 @@ def compute_specificity(TN, FP):
 
 
 def compute_metrics(pred, anno):
-    # Compute confusion metrics
     batch_size = pred.shape[0]
+
+    # Compute confusion metrics
     TP = torch.sum(((pred == 1) & (anno == 1)).view(batch_size, -1), dim=1)
     TN = torch.sum(((pred == 0) & (anno == 0)).view(batch_size, -1), dim=1)
     FP = torch.sum(((pred == 1) & (anno == 0)).view(batch_size, -1), dim=1)
