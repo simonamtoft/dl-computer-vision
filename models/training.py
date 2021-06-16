@@ -219,8 +219,6 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
             avg_loss += loss.item() / len(train_loader)
 
             if epoch == config['epochs']-1:
-                print(Y_pred)
-                print(Y_train)
                 metrics_train = update_metrics(metrics_train, Y_pred, Y_train, len(train_loader))
         
         # Step the learning rate
@@ -413,6 +411,8 @@ def update_metrics(metrics, y_pred, y_real, n):
     # Get predictions
     y_pred = torch.sigmoid(y_pred).detach().cpu()
     y_pred = y_pred > 0.5
+
+    print(y_pred)
     
     # Update metrics
     metrics += compute_metrics(y_pred, y_real.cpu())
