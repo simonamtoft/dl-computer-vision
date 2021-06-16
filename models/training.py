@@ -53,7 +53,7 @@ def train_anno_ensemble(config, train_loader, val_loader, project_name, plotting
     for epoch in range(config['epochs']):
         print(f"* Epoch {epoch+1}/{config['epochs']}")
 
-        avg_losses = [0 for _ in range(4)]
+        train_losses = [0 for _ in range(4)]
         [models[i].train() for i in range(4)]
         for X_batch, Y_batch in train_loader:
             X_batch = X_batch.to(device)
@@ -71,7 +71,7 @@ def train_anno_ensemble(config, train_loader, val_loader, project_name, plotting
                 optimizers[i].step()                        # update weights
 
                 # calculate metrics to show the user
-                avg_losses[i] += loss.item() / len(train_loader)
+                train_losses[i] += loss.item() / len(train_loader)
 
         # Step the learning rate
         if config['step_lr'][0]:
@@ -114,7 +114,7 @@ def train_anno_ensemble(config, train_loader, val_loader, project_name, plotting
                 ax[2,k].imshow(Y_val_std[k, 0], cmap='hot')
                 ax[2,k].set_title('Segmentation Std')
                 ax[2,k].axis('off')
-            plt.suptitle('%d / %d - loss: %f' % (epoch+1, config['epochs'], np.mean(avg_losses)))
+            plt.suptitle('%d / %d - loss: %f' % (epoch+1, config['epochs'], np.mean(train_losses)))
             if not save_fig:
                 plt.show()
             else: 
@@ -134,7 +134,7 @@ def train_anno_ensemble(config, train_loader, val_loader, project_name, plotting
                 ax[2,k].imshow(Y_val_mean[k, 0], cmap='hot')
                 ax[2,k].set_title('Segmentation Mean')
                 ax[2,k].axis('off')
-            plt.suptitle('%d / %d - loss: %f' % (epoch+1, config['epochs'], np.mean(avg_losses)))
+            plt.suptitle('%d / %d - loss: %f' % (epoch+1, config['epochs'], np.mean(train_losses)))
             if not save_fig:
                 plt.show()
             else: 
@@ -143,14 +143,14 @@ def train_anno_ensemble(config, train_loader, val_loader, project_name, plotting
 
         # log to weight & bias
         print("Train losses:")
-        print(avg_losses)
+        print(train_losses)
         print("Validation losses:")
         print(val_losses)
         wandb.log({
-            "train_loss0": avg_losses[0],
-            "train_loss1": avg_losses[1],
-            "train_loss2": avg_losses[2],
-            "train_loss3": avg_losses[3],
+            "train_loss0": train_losses[0],
+            "train_loss1": train_losses[1],
+            "train_loss2": train_losses[2],
+            "train_loss3": train_losses[3],
             "val_loss0": val_losses[0],
             "val_loss1": val_losses[1],
             "val_loss2": val_losses[2],
@@ -195,7 +195,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
         model.train()
 
         # Training pass
-        avg_loss = 0
+        train_loss = 0
         metrics_train = torch.tensor([0, 0, 0, 0, 0])
         for X_train, Y_train in train_loader:
             X_train, Y_train = X_train.to(device), Y_train.to(device)
@@ -217,7 +217,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
 
             # calculate metrics to show the user
             n_train = len(train_loader)
-            avg_loss += loss.item() / n_train
+            train_loss += loss.item() / n_train
             metrics_train = update_metrics(metrics_train, Y_pred, Y_train, n_train)
         
         # Step the learning rate
@@ -269,7 +269,7 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
                 ax[2,k].imshow(Y_val[k, 0], cmap='gray')
                 ax[2,k].set_title('Real Segmentation')
                 ax[2,k].axis('off')
-            plt.suptitle('%d / %d - loss: %f' % (epoch+1, config['epochs'], avg_loss))
+            plt.suptitle('%d / %d - loss: %f' % (epoch+1, config['epochs'], val_loss))
             if not save_fig:
                 plt.show()
             else: 
@@ -277,12 +277,12 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
                 plt.close()
         
         # save loss in dicts
-        train_dict['loss'].append(avg_loss)
+        train_dict['loss'].append(train_loss)
         val_dict['loss'].append(val_loss)
 
         # log to weight & bias
         wandb.log({
-            "train_loss": avg_loss,
+            "train_loss": train_loss,
             "valid_loss": val_loss,
             "train_dice": metrics_train[0],
             "train_iou": metrics_train[1],
