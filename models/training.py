@@ -292,8 +292,16 @@ def train_medical(model, config, train_loader, val_loader, project_name="tmp", p
         wandb.log({
             "train_loss": avg_loss,
             "valid_loss": val_loss,
-            "metrics_train": metrics_train,
-            "metrics_val": metrics_val,
+            "train_dice": metrics_train[0],
+            "train_iou": metrics_train[1],
+            "train_acc": metrics_train[2],
+            "train_sens": metrics_train[3],
+            "train_spec": metrics_train[4],
+            "val_dice": metrics_val[0],
+            "val_iou": metrics_val[1],
+            "val_acc": metrics_val[2],
+            "val_sens": metrics_val[3],
+            "val_spec": metrics_val[4],
         })
     
     # Add metrics to dicts
