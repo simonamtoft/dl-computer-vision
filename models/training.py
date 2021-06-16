@@ -93,7 +93,6 @@ def train_anno_ensemble(config, train_loader, val_loader, project_name, plotting
             with torch.no_grad():
                 Y_hats = torch.stack([torch.sigmoid(models[i](X_val.to(device))).detach() for i in range(4)], dim=1).cpu()
             
-            # 
             Y_hats_std = torch.std(Y_hats, axis=1)
             Y_val_std = torch.std(Y_val, axis=1)
             Y_hats_mean = torch.mean(Y_hats, axis=1)
@@ -114,7 +113,7 @@ def train_anno_ensemble(config, train_loader, val_loader, project_name, plotting
                 ax[2,k].imshow(Y_val_std[k, 0], cmap='hot')
                 ax[2,k].set_title('Segmentation Std')
                 ax[2,k].axis('off')
-            plt.suptitle('%d / %d - loss: %f' % (epoch+1, config['epochs'], np.mean(train_losses)))
+            plt.suptitle('%d / %d - loss: %f' % (epoch+1, config['epochs'], np.mean(val_losses)))
             if not save_fig:
                 plt.show()
             else: 
@@ -134,7 +133,7 @@ def train_anno_ensemble(config, train_loader, val_loader, project_name, plotting
                 ax[2,k].imshow(Y_val_mean[k, 0], cmap='hot')
                 ax[2,k].set_title('Segmentation Mean')
                 ax[2,k].axis('off')
-            plt.suptitle('%d / %d - loss: %f' % (epoch+1, config['epochs'], np.mean(train_losses)))
+            plt.suptitle('%d / %d - loss: %f' % (epoch+1, config['epochs'], np.mean(val_losses)))
             if not save_fig:
                 plt.show()
             else: 
