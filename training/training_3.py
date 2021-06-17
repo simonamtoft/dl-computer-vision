@@ -53,7 +53,7 @@ def train_gan(config, g, d, train_loader, p_name='tmp'):
                         subplots[k].imshow(x_fake_k, cmap='gray')
                         subplots[k].set_title('d(x)=%.2f' % P[k])
                         subplots[k].axis('off')
-                    z = torch.randn(batch_size, 100).to(device)
+                    z = torch.randn(config['batch_size'], 100).to(device)
                     H1 = torch.sigmoid(d(g(z))).cpu()
                     H2 = torch.sigmoid(d(x_real)).cpu()
                     plot_min = min(H1.min(), H2.min()).item()
