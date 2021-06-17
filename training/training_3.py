@@ -14,8 +14,8 @@ def train_gan(config, g, d, train_loader, p_name='tmp', plotting=False):
     wandb.init(project=p_name, config=config)
 
     # Optimizers for generator and discriminator
-    g_opt = torch.optim.Adam(g.parameters(), lr=config["lr_gen"], betas=(0.5, 0.999))
-    d_opt = torch.optim.Adam(d.parameters(), lr=config["lr_dis"], betas=(0.5, 0.999))
+    g_opt = torch.optim.Adam(g.parameters(), lr=config["lr_g"], betas=(0.5, 0.999))
+    d_opt = torch.optim.Adam(d.parameters(), lr=config["lr_d"], betas=(0.5, 0.999))
 
     # set loss function
     gan_loss = gan_loss_func(config)
