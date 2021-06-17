@@ -19,6 +19,10 @@ def train_gan(config, g, d, train_loader, p_name='tmp'):
 
     # set loss function
     gan_loss = gan_loss_func(config)
+    
+    # Create a figure
+    plt.figure(figsize=(20, 10))
+    subplots = [plt.subplot(2, 6, k+1) for k in range(12)]
 
     # perform training
     for epoch in range(config['epochs']):
@@ -39,64 +43,59 @@ def train_gan(config, g, d, train_loader, p_name='tmp'):
             g_loss.backward()
             g_opt.step()
 
-        if minibatch_no % 100 == 0:
-            # Create a figure
-            plt.figure(figsize=(20, 10))
-            subplots = [plt.subplot(2, 6, k+1) for k in range(12)]
-            title = 'Epoch {e} - minibatch {n}/{d}'.format(e=epoch+1, n=minibatch_no, d=len(train_loader))
-            with torch.no_grad():
-                P = torch.sigmoid(d(x_fake))
-                for k in range(11):
-                    x_fake_k = x_fake[k].cpu().squeeze()/2+.5
-                    subplots[k].imshow(x_fake_k, cmap='gray')
-                    subplots[k].set_title('d(x)=%.2f' % P[k])
-                    subplots[k].axis('off')
-                z = torch.randn(x_real.shape[0], 100).to(device)
-                H1 = torch.sigmoid(d(g(z))).cpu()
-                H2 = torch.sigmoid(d(x_real)).cpu()
-                plot_min = min(H1.min(), H2.min()).item()
-                plot_max = max(H1.max(), H2.max()).item()
-                subplots[-1].cla()
-                subplots[-1].hist(H1.squeeze(), label='fake', range=(plot_min, plot_max), alpha=0.5)
-                subplots[-1].hist(H2.squeeze(), label='real', range=(plot_min, plot_max), alpha=0.5)
-                subplots[-1].legend()
-                subplots[-1].set_xlabel('Probability of being real')
-                subplots[-1].set_title('Discriminator loss: %.2f' % d_loss.item())
-
-                plt.gcf().suptitle(title, fontsize=20)
-                plt.savefig('log_img.png', transparent=True, bbox_inches='tight')
-                display.display(plt.gcf())
-                display.clear_output(wait=True)
-                plt.close()
-            # train_visualize(d, g, x_real, x_fake, subplots, d_loss, title)
-            wandb.log({"Train Visualization": wandb.Image("log_img.png")})
-    
+            assert(not np.isnan(d_loss.item()))
+            #Plot results every 100 minibatches
+            if minibatch_no % 100 == 0:
+                with torch.no_grad():
+                    P = torch.sigmoid(d(x_fake))
+                    for k in range(11):
+                        x_fake_k = x_fake[k].cpu().squeeze()/2+.5
+                        subplots[k].imshow(x_fake_k, cmap='gray')
+                        subplots[k].set_title('d(x)=%.2f' % P[k])
+                        subplots[k].axis('off')
+                    z = torch.randn(batch_size, 100).to(device)
+                    H1 = torch.sigmoid(d(g(z))).cpu()
+                    H2 = torch.sigmoid(d(x_real)).cpu()
+                    plot_min = min(H1.min(), H2.min()).item()
+                    plot_max = max(H1.max(), H2.max()).item()
+                    subplots[-1].cla()
+                    subplots[-1].hist(H1.squeeze(), label='fake', range=(plot_min, plot_max), alpha=0.5)
+                    subplots[-1].hist(H2.squeeze(), label='real', range=(plot_min, plot_max), alpha=0.5)
+                    subplots[-1].legend()
+                    subplots[-1].set_xlabel('Probability of being real')
+                    subplots[-1].set_title('Discriminator loss: %.2f' % d_loss.item())
+                    
+                    title = 'Epoch {e} - minibatch {n}/{d}'.format(e=epoch+1, n=minibatch_no, d=len(train_loader))
+                    plt.gcf().suptitle(title, fontsize=20)
+                    plt.savefig('log_image.png', transparent=True, bbox_inches='tight')
+                    display.display(plt.gcf())
+                    display.clear_output(wait=True)
+                    wandb.log({"Train Visualization": wandb.Image("log_image.png")})
     wandb.finish()
-    return None
 
 
-def train_visualize(d, g, x_real, x_fake, subplots, d_loss, title):
-    with torch.no_grad():
-        P = torch.sigmoid(d(x_fake))
-        for k in range(11):
-            x_fake_k = x_fake[k].cpu().squeeze()/2+.5
-            subplots[k].imshow(x_fake_k, cmap='gray')
-            subplots[k].set_title('d(x)=%.2f' % P[k])
-            subplots[k].axis('off')
-        z = torch.randn(x_real.shape[0], 100).to(device)
-        H1 = torch.sigmoid(d(g(z))).cpu()
-        H2 = torch.sigmoid(d(x_real)).cpu()
-        plot_min = min(H1.min(), H2.min()).item()
-        plot_max = max(H1.max(), H2.max()).item()
-        subplots[-1].cla()
-        subplots[-1].hist(H1.squeeze(), label='fake', range=(plot_min, plot_max), alpha=0.5)
-        subplots[-1].hist(H2.squeeze(), label='real', range=(plot_min, plot_max), alpha=0.5)
-        subplots[-1].legend()
-        subplots[-1].set_xlabel('Probability of being real')
-        subplots[-1].set_title('Discriminator loss: %.2f' % d_loss.item())
+# def train_visualize(d, g, x_real, x_fake, subplots, d_loss, title):
+#     with torch.no_grad():
+#         P = torch.sigmoid(d(x_fake))
+#         for k in range(11):
+#             x_fake_k = x_fake[k].cpu().squeeze()/2+.5
+#             subplots[k].imshow(x_fake_k, cmap='gray')
+#             subplots[k].set_title('d(x)=%.2f' % P[k])
+#             subplots[k].axis('off')
+#         z = torch.randn(x_real.shape[0], 100).to(device)
+#         H1 = torch.sigmoid(d(g(z))).cpu()
+#         H2 = torch.sigmoid(d(x_real)).cpu()
+#         plot_min = min(H1.min(), H2.min()).item()
+#         plot_max = max(H1.max(), H2.max()).item()
+#         subplots[-1].cla()
+#         subplots[-1].hist(H1.squeeze(), label='fake', range=(plot_min, plot_max), alpha=0.5)
+#         subplots[-1].hist(H2.squeeze(), label='real', range=(plot_min, plot_max), alpha=0.5)
+#         subplots[-1].legend()
+#         subplots[-1].set_xlabel('Probability of being real')
+#         subplots[-1].set_title('Discriminator loss: %.2f' % d_loss.item())
 
-        plt.gcf().suptitle(title, fontsize=20)
-        plt.savefig('log_img.png', transparent=True, bbox_inches='tight')
-        plt.close()
-        # display.display(plt.gcf())
-        # display.clear_output(wait=True)
+#         plt.gcf().suptitle(title, fontsize=20)
+#         plt.savefig('log_img.png', transparent=True, bbox_inches='tight')
+#         plt.close()
+#         display.display(plt.gcf())
+#         display.clear_output(wait=True)
