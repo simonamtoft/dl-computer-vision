@@ -9,7 +9,7 @@ from helpers import gan_loss_func
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-def train_gan(config, g, d, train_loader, p_name='tmp', plotting=False):
+def train_gan(config, g, d, train_loader, p_name='tmp'):
     # Initialize wandb run
     wandb.init(project=p_name, config=config)
 
@@ -20,10 +20,9 @@ def train_gan(config, g, d, train_loader, p_name='tmp', plotting=False):
     # set loss function
     gan_loss = gan_loss_func(config)
 
-    # Create a figure if we want to plot
-    if plotting:
-        plt.figure(figsize=(20,10))
-        subplots = [plt.subplot(2, 6, k+1) for k in range(12)]
+    # Create a figure
+    plt.figure(figsize=(20,10))
+    subplots = [plt.subplot(2, 6, k+1) for k in range(12)]
 
     # perform training
     for epoch in range(config['epochs']):
@@ -44,10 +43,10 @@ def train_gan(config, g, d, train_loader, p_name='tmp', plotting=False):
             g_loss.backward()
             g_opt.step()
 
-        if plotting and (minibatch_no % 100 == 0):
+        if minibatch_no % 100 == 0:
             title = 'Epoch {e} - minibatch {n}/{d}'.format(e=epoch+1, n=minibatch_no, d=len(train_loader))
             train_visualize(d, g, x_real, x_fake, subplots, d_loss, title)
-            wandb.log({"Train Visualization": wandb.Image("log_image.png")})
+            wandb.log({"Train Visualization": wandb.Image("log_img.png")})
     
     wandb.finish()
     return None
@@ -75,6 +74,7 @@ def train_visualize(d, g, x_real, x_fake, subplots, d_loss, title):
         subplots[-1].set_title('Discriminator loss: %.2f' % d_loss.item())
 
         plt.gcf().suptitle(title, fontsize=20)
-        plt.savefig('log_image.png', transparent=True, bbox_inches='tight')
-        display.display(plt.gcf())
-        display.clear_output(wait=True)
+        plt.savefig('log_img.png', transparent=True, bbox_inches='tight')
+        plt.close()
+        # display.display(plt.gcf())
+        # display.clear_output(wait=True)
