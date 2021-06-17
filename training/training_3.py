@@ -20,10 +20,6 @@ def train_gan(config, g, d, train_loader, p_name='tmp'):
     # set loss function
     gan_loss = gan_loss_func(config)
 
-    # Create a figure
-    plt.figure(figsize=(20,10))
-    subplots = [plt.subplot(2, 6, k+1) for k in range(12)]
-
     # perform training
     for epoch in range(config['epochs']):
         for minibatch_no, (x, target) in enumerate(train_loader):
@@ -44,6 +40,9 @@ def train_gan(config, g, d, train_loader, p_name='tmp'):
             g_opt.step()
 
         if minibatch_no % 100 == 0:
+            # Create a figure
+            plt.figure(figsize=(20, 10))
+            subplots = [plt.subplot(2, 6, k+1) for k in range(12)]
             title = 'Epoch {e} - minibatch {n}/{d}'.format(e=epoch+1, n=minibatch_no, d=len(train_loader))
             with torch.no_grad():
                 P = torch.sigmoid(d(x_fake))
@@ -66,6 +65,8 @@ def train_gan(config, g, d, train_loader, p_name='tmp'):
 
                 plt.gcf().suptitle(title, fontsize=20)
                 plt.savefig('log_img.png', transparent=True, bbox_inches='tight')
+                display.display(plt.gcf())
+                display.clear_output(wait=True)
                 plt.close()
             # train_visualize(d, g, x_real, x_fake, subplots, d_loss, title)
             wandb.log({"Train Visualization": wandb.Image("log_img.png")})
