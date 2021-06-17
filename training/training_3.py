@@ -11,7 +11,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def train_gan(config, g, d, train_loader, p_name='tmp', plotting=False):
     # Initialize wandb run
-    wandb.init(project_name=p_name, config=config)
+    wandb.init(project=p_name, config=config)
 
     # Optimizers for generator and discriminator
     g_opt = torch.optim.Adam(g.parameters(), lr=config["lr_gen"], betas=(0.5, 0.999))
