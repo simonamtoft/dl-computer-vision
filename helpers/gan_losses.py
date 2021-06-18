@@ -8,10 +8,10 @@ class WGANLoss(nn.Module):
         super(WGANLoss, self)
 
     def discriminator(self, d, x_real, x_fake):
-        return None
+        return -(torch.mean(d(x_real)) - torch.mean(d(x_fake.detach())))
     
     def generator(self, d, x_real, x_fake):
-        return None
+        return -torch.mean(d(x_fake))
 
 
 class LSGANLoss(nn.Module):
