@@ -9,17 +9,10 @@ from data import HORSES, ZEBRAS
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-if not os.path.exists('./horse2zebra'):
-    import gdown
-    from zipfile import ZipFile
-    url = 'https://drive.google.com/uc?id=1PBHjsYy6cX9PFuH72SWMPSTxHrL6RPhN'
-    gdown.download(url, './horse2zebra.zip', quiet=False)
-    with ZipFile('horse2zebra.zip', 'r') as zipObj:
-        zipObj.extractall()
-
+# Setup training config
 config = {
     'batch_size': 16,
-    'epochs': 10,
+    'epochs': 50,
     'lr_d': 2*1e-4,
     'lr_g': 1*1e-4,
     'g_loss_weight': [1, 10, 5],
@@ -27,6 +20,7 @@ config = {
     'n_blocks': 6,
     'relu_val': 0.2,
     'img_loss': 'l2',
+    'buffer_size': 50,
 }
 
 # Instantiate models
