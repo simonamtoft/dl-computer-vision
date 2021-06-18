@@ -18,8 +18,10 @@ class ResBlock(nn.Module):
 
 
 class Generator(nn.Module):
-    def __init__(self, f=64, blocks=6):
+    def __init__(self, config):
         super(Generator, self).__init__()
+        f = config['n_features']
+        blocks = config['n_blocks']
 
         # Encoding layer
         layers = [
@@ -53,8 +55,10 @@ class Generator(nn.Module):
 
 
 class Discriminator(nn.Module):
-    def __init__(self, f=64, relu_val=0.2):
+    def __init__(self, config):
         super(Discriminator, self).__init__()
+        f = config['n_features']
+        relu_val = config['relu_val']
 
         self.conv = nn.Sequential(
             nn.Conv2d(  3,   f, kernel_size=4, stride=2, padding=1), 
