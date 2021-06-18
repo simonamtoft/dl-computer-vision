@@ -140,9 +140,9 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, zebra_loader, horse_loader, 
 
 def save_state(g_h2z, g_z2h, d_h, d_z):
     torch.save(g_h2z, path.join(save_folder, 'g_h2z.pt'))
-    torch.save(g_z2h, path.join(save_folder + 'g_z2h.pt'))
-    torch.save(d_h, path.join(save_folder + 'd_h.pt'))
-    torch.save(d_z, path.join(save_folder + 'd_z.pt'))
+    torch.save(g_z2h, path.join(save_folder, 'g_z2h.pt'))
+    torch.save(d_h, path.join(save_folder, 'd_h.pt'))
+    torch.save(d_z, path.join(save_folder, 'd_z.pt'))
 
 
 def visualize_train(config, H2Z, Z2H, d_H, d_Z, x_horse, x_zebra, plotting=False):
