@@ -10,6 +10,13 @@ from helpers import gan_im_loss
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 save_folder = 'saved_states'
 
+# Define loss functions as LSGAN
+def real_loss(x):
+    return torch.mean((x - 1)**2)
+
+def fake_loss(x):
+    return torch.mean(x**2)
+
 
 def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, zebra_loader, horse_loader, p_name='tmp'):
     """Training function for the Cycle GAN network
@@ -33,14 +40,7 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, zebra_loader, horse_loader, 
         zebra_loader    :   A Dataloader of the zebra training data
         horse_loader    :   A Dataloader of the horse training data
         p_name          :   A string, determining the name of the project on wandb
-    """
-    # Define loss functions as LSGAN
-    def real_loss(x):
-        return torch.mean((x - 1)**2)
-
-    def fake_loss(x):
-        return torch.mean(x**2)
-    
+    """    
     # Define image loss as L2 loss
     im_loss = gan_im_loss(config)
     
@@ -126,10 +126,7 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, zebra_loader, horse_loader, 
             # Plot results every 100 minibatches
             assert(not np.isnan(d_loss.item()))
             if i % 100 == 0:
-                continue
-                # title = 'Epoch {e} - minibatch {n}/{d}'.format(e=epoch+1, n=i, d=len(train_loader))
-                # visualize_train(config, g, d, x_real, x_fake, subplots, d_loss, title)
-                visualize_train(d_h2z,d_z2h,d_H,d_Z,x_horse,x_zebra)
+                visualize_train(config, g_h2z, g_z2h, d_h, d_z, x_horse, x_zebra)
         
         # Save state every epoch
         save_state(g_h2z, g_z2h, d_h, d_z)
@@ -140,6 +137,7 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, zebra_loader, horse_loader, 
     # Finalize run
     wandb.finish()
 
+
 def save_state(g_h2z, g_z2h, d_h, d_z):
     torch.save(g_h2z, path.join(save_folder, 'g_h2z.pt'))
     torch.save(g_z2h, path.join(save_folder + 'g_z2h.pt'))
@@ -147,78 +145,79 @@ def save_state(g_h2z, g_z2h, d_h, d_z):
     torch.save(d_z, path.join(save_folder + 'd_z.pt'))
 
 
-def visualize_train(H2Z,Z2H,d_H,d_Z,x_horse,x_zebra):
-  with torch.no_grad(): 
-    # Generate fake images
-    Z_fake = H2Z(x_horse)
-    H_fake = Z2H(x_zebra)
+def visualize_train(config, H2Z, Z2H, d_H, d_Z, x_horse, x_zebra, plotting=False):
+    # Define image loss as L2 loss
+    im_loss = gan_im_loss(config)
+    lw = config['g_loss_weight']
 
-    Z_fake_loss = fake_loss(d_Z(Z_fake)).cpu().numpy()
-    H_fake_loss = fake_loss(d_H(H_fake)).cpu().numpy()
-          
-    # Generate recreational images
-    Z_rec = H2Z(x_horse_fake)
-    H_rec = Z2H(x_zebra_fake)
+    with torch.no_grad(): 
+        # Generate fake images
+        Z_fake = H2Z(x_horse)
+        H_fake = Z2H(x_zebra)
 
-    Z_rec_loss = 10*im_loss(x_zebra, Z_rec).cpu().numpy()
-    H_rec_loss = 10*im_loss(x_horse, H_rec).cpu().numpy()
+        # Generate recreational images
+        Z_rec = H2Z(H_fake)
+        H_rec = Z2H(Z_fake)
 
-    # Generate Identity images
-    Z_iden = H2Z(x_zebra)
-    H_iden = Z2H(x_horse)
+        # Generate Identity images
+        Z_iden = H2Z(x_zebra)
+        H_iden = Z2H(x_horse)
+        
+        # Compute losses
+        Z_fake_loss = lw[0]*fake_loss(d_Z(Z_fake)).cpu().numpy()
+        H_fake_loss = lw[0]*fake_loss(d_H(H_fake)).cpu().numpy()
+        Z_rec_loss = lw[1]*im_loss(x_zebra, Z_rec).cpu().numpy()
+        H_rec_loss = lw[1]*im_loss(x_horse, H_rec).cpu().numpy()
+        Z_iden_loss = lw[2]*im_loss(x_zebra, Z_iden).cpu().numpy()
+        H_iden_loss = lw[2]*im_loss(x_horse, H_iden).cpu().numpy()
 
-    Z_iden_loss = 5*im_loss(x_zebra, Z_iden).cpu().numpy()
-    H_iden_loss = 5*im_loss(x_horse, H_iden).cpu().numpy()
+        # Convet to cpu device
+        H_real = x_horse.cpu()
+        Z_real = x_zebra.cpu()
+        H_fake = H_fake.cpu()
+        Z_fake = Z_fake.cpu()
+        H_rec = H_rec.cpu()
+        Z_rec = Z_rec.cpu()
+        H_iden = H_iden.cpu()
+        Z_iden = Z_iden.cpu()
 
+    # Plot images
+    n_rows = 1 if H_real.shape[0]<2 else 2 # How many rows should be shown
+    f,ax = plt.subplots(n_rows*2, 4, figsize=(8, n_rows*5))
+    for i in range(n_rows):
+        # Horses
+        ax[2*i,0].imshow(np.swapaxes(np.swapaxes((H_real[i].numpy()+1)/2,0,2),0,1))
+        ax[2*i,0].axis('off')
+        ax[2*i,0].set_title('Original')
 
-  # Convet to cpu device
-  H_real = x_horse.cpu()
-  Z_real = x_zebra.cpu()
-  H_fake = H_fake.cpu()
-  Z_fake = Z_fake.cpu()
-  H_rec = H_rec.cpu()
-  Z_rec = Z_rec.cpu()
-  H_iden = H_iden.cpu()
-  Z_iden = Z_iden.cpu()
+        ax[2*i,1].imshow(np.swapaxes(np.swapaxes((Z_fake[i].numpy()+1)/2,0,2),0,1))
+        ax[2*i,1].axis('off')
+        ax[2*i,1].set_title('Fake, d={:.2f}'.format(Z_fake_loss))
 
-  # How many rows should be shown
-  n_rows = 1 if H_real.shape[0]<2 else 2
+        ax[2*i,2].imshow(np.swapaxes(np.swapaxes((H_rec[i].numpy()+1)/2,0,2),0,1))
+        ax[2*i,2].axis('off')
+        ax[2*i,2].set_title(f'Recovered, d={np.round(H_rec_loss,2)}')
 
-  f,ax = plt.subplots(n_rows*2,4,figsize=(8,n_rows*5))
-  for i in range(n_rows):
-    # Horses
-    ax[2*i,0].imshow(np.swapaxes(np.swapaxes((H_real[i].numpy()+1)/2,0,2),0,1))
-    ax[2*i,0].axis('off')
-    ax[2*i,0].set_title('Original')
+        ax[2*i,3].imshow(np.swapaxes(np.swapaxes((H_iden[i].numpy()+1)/2,0,2),0,1))
+        ax[2*i,3].axis('off')
+        ax[2*i,3].set_title(f'Identity, d={np.round(H_iden_loss,2)}')
 
-    ax[2*i,1].imshow(np.swapaxes(np.swapaxes((Z_fake[i].numpy()+1)/2,0,2),0,1))
-    ax[2*i,1].axis('off')
-    ax[2*i,1].set_title('Fake, d={:.2f}'.format(Z_fake_loss))
+        # Zebras
+        ax[2*i+1,0].imshow(np.swapaxes(np.swapaxes((Z_real[i].numpy()+1)/2,0,2),0,1))
+        ax[2*i+1,0].axis('off')
+        ax[2*i+1,0].set_title('Original')
 
-    ax[2*i,2].imshow(np.swapaxes(np.swapaxes((H_rec[i].numpy()+1)/2,0,2),0,1))
-    ax[2*i,2].axis('off')
-    ax[2*i,2].set_title(f'Recovered, d={np.round(H_rec_loss,2)}')
+        ax[2*i+1,1].imshow(np.swapaxes(np.swapaxes((H_fake[i].numpy()+1)/2,0,2),0,1))
+        ax[2*i+1,1].axis('off')
+        ax[2*i+1,1].set_title('Fake, d={:.2f}'.format(H_fake_loss))
 
-    ax[2*i,3].imshow(np.swapaxes(np.swapaxes((H_iden[i].numpy()+1)/2,0,2),0,1))
-    ax[2*i,3].axis('off')
-    ax[2*i,3].set_title(f'Identity, d={np.round(H_iden_loss,2)}')
+        ax[2*i+1,2].imshow(np.swapaxes(np.swapaxes((Z_rec[i].numpy()+1)/2,0,2),0,1))
+        ax[2*i+1,2].axis('off')
+        ax[2*i+1,2].set_title(f'Recovered, d={np.round(Z_rec_loss,2)}')
 
-    # Zebras
-    ax[2*i+1,0].imshow(np.swapaxes(np.swapaxes((Z_real[i].numpy()+1)/2,0,2),0,1))
-    ax[2*i+1,0].axis('off')
-    ax[2*i+1,0].set_title('Original')
-
-    ax[2*i+1,1].imshow(np.swapaxes(np.swapaxes((H_fake[i].numpy()+1)/2,0,2),0,1))
-    ax[2*i+1,1].axis('off')
-    ax[2*i+1,1].set_title('Fake, d={:.2f}'.format(H_fake_loss))
-
-    ax[2*i+1,2].imshow(np.swapaxes(np.swapaxes((Z_rec[i].numpy()+1)/2,0,2),0,1))
-    ax[2*i+1,2].axis('off')
-    ax[2*i+1,2].set_title(f'Recovered, d={np.round(Z_rec_loss,2)}')
-
-    ax[2*i+1,3].imshow(np.swapaxes(np.swapaxes((Z_iden[i].numpy()+1)/2,0,2),0,1))
-    ax[2*i+1,3].axis('off')
-    ax[2*i+1,3].set_title(f'Identity, d={np.round(Z_iden_loss,2)}')
+        ax[2*i+1,3].imshow(np.swapaxes(np.swapaxes((Z_iden[i].numpy()+1)/2,0,2),0,1))
+        ax[2*i+1,3].axis('off')
+        ax[2*i+1,3].set_title(f'Identity, d={np.round(Z_iden_loss,2)}')
 
     f.savefig('log_image.png', transparent=True, bbox_inches='tight')
     if plotting == True:
@@ -227,5 +226,5 @@ def visualize_train(H2Z,Z2H,d_H,d_Z,x_horse,x_zebra):
     else:
         plt.close()
     wandb.log({"Train Visualization": wandb.Image("log_image.png")})
-    
+
     return None
