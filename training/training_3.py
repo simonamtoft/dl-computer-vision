@@ -7,6 +7,7 @@ import wandb
 from helpers import gan_im_loss
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+save_folder = 'saved_states'
 
 
 def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, zebra_loader, horse_loader, p_name='tmp'):
@@ -93,6 +94,12 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, zebra_loader, horse_loader, 
             g_loss = g_loss_fool + g_loss_cycle + g_loss_iden
             g_loss.backward()
             g_opt.step()
+
+            # Save current state
+            torch.save(g_h2z, save_folder + 'g_h2z.pt')
+            torch.save(g_z2h, save_folder + 'g_z2h.pt')
+            torch.save(d_h, save_folder + 'd_h.pt')
+            torch.save(d_z, save_folder + 'd_z.pt')
 
             assert(not np.isnan(d_loss.item()))
             #Plot results every 100 minibatches
