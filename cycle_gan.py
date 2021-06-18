@@ -19,14 +19,15 @@ if not os.path.exists('./horse2zebra'):
 
 config = {
     'batch_size': 16,
-    'epochs': 10,
+    'epochs': 30,
     'lr_d': 2*1e-4,
     'lr_g': 2*1e-4,
     'g_loss_weight': [1, 10, 5],
     'n_features': 64,
-    'n_blocks': 9,
+    'n_blocks': 11,
     'relu_val': 0.2,
-    'img_loss': 'l2',
+    'img_loss': 'l1',
+    'buffer_size' : 10
 }
 
 # Instantiate models
@@ -35,7 +36,9 @@ g_z2h = Generator(config).to(device)
 d_h = Discriminator(config).to(device)
 d_z = Discriminator(config).to(device)
 
-train_transform = transforms.Compose([transforms.Resize((128,128)),transforms.ToTensor()])
+train_transform = transforms.Compose([transforms.Resize((128,128)),
+                    #transforms.RandomAffine(degrees=30,translate=(0.1,0.1),scale=(1,1.1)),
+                    transforms.ToTensor()])
 test_transform = transforms.Compose([transforms.Resize((128,128)),transforms.ToTensor()])
 
 # Get data
