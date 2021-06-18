@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from IPython import display
 import wandb
 
-from helpers import gan_im_loss
+from helpers import gan_im_loss, ImageBuffer
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 save_folder = 'saved_states'
@@ -53,6 +53,10 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, zebra_loader, horse_loader, 
     g_opt = torch.optim.Adam(g_param, lr=config["lr_g"], betas=(0.5, 0.999))
     d_opt = torch.optim.Adam(d_param, lr=config["lr_d"], betas=(0.5, 0.999))
 
+    if "buffer_size" in config and config["buffer_size"]:
+        fake_h_buffer = ImageBuffer(config["buffer_size"])
+        fake_z_buffer = ImageBuffer(config["buffer_size"])
+
     # perform training
     for epoch in range(config['epochs']):
         print(f"Epoch {epoch+1}/{config['epochs']}")
@@ -91,13 +95,20 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, zebra_loader, horse_loader, 
             # Generate recreational images
             x_zebra_rec = g_h2z(x_horse_fake)
             x_horse_rec = g_z2h(x_zebra_fake)
-            
+
+            if "buffer_size" in config and config["buffer_size"]:
+                x_horse_fake_t = fake_h_buffer.push_and_pop(x_horse_fake)
+                x_zebra_fake_t = fake_z_buffer.push_and_pop(x_zebra_fake)
+            else:
+                x_horse_fake_t = x_horse_fake
+                x_zebra_fake_t = x_zebra_fake
+
             # Update discriminator 
             d_opt.zero_grad()
             d_loss = real_loss(d_h(x_horse))
-            d_loss += fake_loss(d_h(x_horse_fake.detach()))
+            d_loss += fake_loss(d_h(x_horse_fake_t.detach()))
             d_loss += real_loss(d_z(x_zebra))
-            d_loss += fake_loss(d_z(x_zebra_fake.detach()))
+            d_loss += fake_loss(d_z(x_zebra_fake_t.detach()))
             d_loss.backward()
             d_opt.step()
 
