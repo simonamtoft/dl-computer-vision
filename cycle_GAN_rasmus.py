@@ -10,16 +10,16 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Setup training config
 config = {
-    'batch_size': 2,
-    'epochs': 50,
+    'batch_size': 8,
+    'epochs': 10,
     'lr_d': 4*1e-4,
     'lr_g': 2*1e-4,
     'g_loss_weight': [1, 10, 5],
-    'n_features': 128,
-    'n_blocks': 12,
+    'n_features': 64,
+    'n_blocks': 9,
     'relu_val': 0.2,
     'img_loss': ['l2', 'l1'], # cycle, identity 
-    'buffer_size': 50,
+    'buffer_size': 10,
 }
 
 # Instantiate models
