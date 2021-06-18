@@ -9,8 +9,30 @@ from helpers import gan_im_loss
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-def train_gan(config, g_h2z, g_z2h, d_h, d_z, train_loader_zebra, train_loader_horse, p_name='tmp'):
-    #  Define loss functions as LSGAN
+def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, zebra_loader, horse_loader, p_name='tmp'):
+    """Training function for the Cycle GAN network
+    Inputs
+        config          :   A config dict that is sent to weight and biases, 
+                            and used to set different training hyperparameters
+                                'lr_g'          :   Learning rate for the 
+                                                    generator optimizer
+                                'lr_d'          :   Learning rate for the 
+                                                    discriminator optimizer
+                                'epochs'        :   Number of epochs to train
+                                'img_loss'      :   Specify how to compute the 
+                                                    image loss ('l1' or 'l2')
+                                'g_loss_weight' :   Specify the weighting of
+                                                    the generator losses as a list 
+                                                    of ints: [fool, cycle, identity]
+        g_h2z           :   A generator nn.Module that converts horses to zebras
+        g_z2h           :   A generator nn.Module that converts zebras to horses
+        d_h             :   A discriminator nn.Module that can discriminate horses
+        d_z             :   A discriminator nn.Module that can discriminate zebras
+        zebra_loader    :   A Dataloader of the zebra training data
+        horse_loader    :   A Dataloader of the horse training data
+        p_name          :   A string, determining the name of the project on wandb
+    """
+    # Define loss functions as LSGAN
     def real_loss(x):
         return torch.mean((x - 1)**2)
 
@@ -30,8 +52,8 @@ def train_gan(config, g_h2z, g_z2h, d_h, d_z, train_loader_zebra, train_loader_h
     d_opt = torch.optim.Adam(d_param, lr=config["lr_d"], betas=(0.5, 0.999))
 
     # Converte loaders to iterators
-    data_zebra = iter(train_loader_zebra)
-    data_horse = iter(train_loader_horse)
+    data_zebra = iter(zebra_loader)
+    data_horse = iter(horse_loader)
 
     # perform training
     for epoch in range(config['epochs']):
