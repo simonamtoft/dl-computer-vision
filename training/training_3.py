@@ -29,10 +29,15 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, zebra_loader, horse_loader, 
                                                     discriminator optimizer
                                 'epochs'        :   Number of epochs to train
                                 'img_loss'      :   Specify how to compute the 
-                                                    image loss ('l1' or 'l2')
+                                                    image losses as list of 
+                                                    strings 'l1' or 'l2':
+                                                    [cycele, identity]
                                 'g_loss_weight' :   Specify the weighting of
                                                     the generator losses as a list 
                                                     of ints: [fool, cycle, identity]
+                                'buffer_size'   :   Size of the image buffer during 
+                                                    training for the generated zebra
+                                                    and horse images.
         g_h2z           :   A generator nn.Module that converts horses to zebras
         g_z2h           :   A generator nn.Module that converts zebras to horses
         d_h             :   A discriminator nn.Module that can discriminate horses
@@ -156,7 +161,7 @@ def save_state(g_h2z, g_z2h, d_h, d_z):
 
 def visualize_train(config, H2Z, Z2H, d_H, d_Z, x_horse, x_zebra, plotting=False):
     # Define image loss as L2 loss
-    im_loss = gan_im_loss(config)
+    im_loss_1, im_loss_2 = gan_im_loss(config)
     lw = config['g_loss_weight']
 
     with torch.no_grad(): 
@@ -175,10 +180,10 @@ def visualize_train(config, H2Z, Z2H, d_H, d_Z, x_horse, x_zebra, plotting=False
         # Compute losses
         Z_fake_loss = lw[0]*fake_loss(d_Z(Z_fake)).cpu().numpy()
         H_fake_loss = lw[0]*fake_loss(d_H(H_fake)).cpu().numpy()
-        Z_rec_loss = lw[1]*im_loss(x_zebra, Z_rec).cpu().numpy()
-        H_rec_loss = lw[1]*im_loss(x_horse, H_rec).cpu().numpy()
-        Z_iden_loss = lw[2]*im_loss(x_zebra, Z_iden).cpu().numpy()
-        H_iden_loss = lw[2]*im_loss(x_horse, H_iden).cpu().numpy()
+        Z_rec_loss = lw[1]*im_loss_1(x_zebra, Z_rec).cpu().numpy()
+        H_rec_loss = lw[1]*im_loss_1(x_horse, H_rec).cpu().numpy()
+        Z_iden_loss = lw[2]*im_loss_2(x_zebra, Z_iden).cpu().numpy()
+        H_iden_loss = lw[2]*im_loss_2(x_horse, H_iden).cpu().numpy()
 
         # Convet to cpu device
         H_real = x_horse.cpu()
