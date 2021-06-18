@@ -1,6 +1,6 @@
 #!/bin/sh
 #BSUB -q gpua100
-#BSUB -J "LIDC"
+#BSUB -J "Cycle_GAN"
 #BSUB -n 4
 #BSUB -gpu "num=1:mode=exclusive_process"
 #BSUB -W 23:59
@@ -20,4 +20,4 @@ module load cuda/11.1
 module load cudnn/v8.0.4.30-prod-cuda-11.1
 
 source venv/bin/activate
-python LIDC.py
+python cycle_gan.py
