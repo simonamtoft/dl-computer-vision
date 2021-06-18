@@ -164,6 +164,9 @@ def visualize_train(config, H2Z, Z2H, d_H, d_Z, x_horse, x_zebra, plotting=False
     im_loss_1, im_loss_2 = gan_im_loss(config)
     lw = config['g_loss_weight']
 
+    def fix_img(x):
+        return np.swapaxes(np.swapaxes((x.cpu().numpy()+1)/2,0,2),0,1)
+
     with torch.no_grad(): 
         # Generate fake images
         Z_fake = H2Z(x_horse)
@@ -185,57 +188,49 @@ def visualize_train(config, H2Z, Z2H, d_H, d_Z, x_horse, x_zebra, plotting=False
         Z_iden_loss = lw[2]*im_loss_2(x_zebra, Z_iden).cpu().numpy()
         H_iden_loss = lw[2]*im_loss_2(x_horse, H_iden).cpu().numpy()
 
-        # Convet to cpu device
-        H_real = x_horse.cpu()
-        Z_real = x_zebra.cpu()
-        H_fake = H_fake.cpu()
-        Z_fake = Z_fake.cpu()
-        H_rec = H_rec.cpu()
-        Z_rec = Z_rec.cpu()
-        H_iden = H_iden.cpu()
-        Z_iden = Z_iden.cpu()
+    # Get random indicies from batch
+    n_rows = 1 if x_horse.shape[0] < 2 else 2 # How many rows should be shown
+    if x_horse.shape[0] > x_zebra.shape[0]:
+        idx = np.random.randint(0, x_zebra.shape[0], n_rows)
+    else:
+        idx = np.random.randint(0, x_horse.shape[0], n_rows)
 
     # Plot images
-    n_rows = 1 if H_real.shape[0]<2 else 2 # How many rows should be shown
-
-    # Show random images from the batch
-    idx = np.random.randint(0,H_real.shape[0],(2,n_rows))
-
     f,ax = plt.subplots(n_rows*2, 4, figsize=(8, n_rows*5))
     for i in range(n_rows):
         # Horses
-        ax[2*i,0].imshow(np.swapaxes(np.swapaxes((H_real[idx[0,i]].numpy()+1)/2,0,2),0,1))
+        ax[2*i,0].imshow(fix_img(x_horse[idx[i]]))
         ax[2*i,0].axis('off')
         ax[2*i,0].set_title('Original')
-
-        ax[2*i,1].imshow(np.swapaxes(np.swapaxes((Z_fake[idx[0,i]].numpy()+1)/2,0,2),0,1))
+        
+        ax[2*i,1].imshow(fix_img(Z_fake[idx[i]]))
         ax[2*i,1].axis('off')
         ax[2*i,1].set_title('Fake, d={:.2f}'.format(Z_fake_loss))
-
-        ax[2*i,2].imshow(np.swapaxes(np.swapaxes((H_rec[idx[0,i]].numpy()+1)/2,0,2),0,1))
+    
+        ax[2*i,2].imshow(fix_img(H_rec[idx[i]]))
         ax[2*i,2].axis('off')
         ax[2*i,2].set_title(f'Recovered, d={np.round(H_rec_loss,2)}')
-
-        ax[2*i,3].imshow(np.swapaxes(np.swapaxes((H_iden[idx[0,i]].numpy()+1)/2,0,2),0,1))
+        
+        ax[2*i,3].imshow(fix_img(H_iden[idx[i]]))
         ax[2*i,3].axis('off')
         ax[2*i,3].set_title(f'Identity, d={np.round(H_iden_loss,2)}')
 
         # Zebras
-        ax[2*i+1,0].imshow(np.swapaxes(np.swapaxes((Z_real[idx[1,i]].numpy()+1)/2,0,2),0,1))
+        ax[2*i+1,0].imshow(fix_img(x_zebra[idx[i]]))
         ax[2*i+1,0].axis('off')
         ax[2*i+1,0].set_title('Original')
 
-        ax[2*i+1,1].imshow(np.swapaxes(np.swapaxes((H_fake[idx[1,i]].numpy()+1)/2,0,2),0,1))
+        ax[2*i+1,1].imshow(fix_img(H_fake[idx[i]]))
         ax[2*i+1,1].axis('off')
         ax[2*i+1,1].set_title('Fake, d={:.2f}'.format(H_fake_loss))
 
-        ax[2*i+1,2].imshow(np.swapaxes(np.swapaxes((Z_rec[idx[1,i]].numpy()+1)/2,0,2),0,1))
+        ax[2*i+1,2].imshow(fix_img(Z_rec[idx[i]]))
         ax[2*i+1,2].axis('off')
         ax[2*i+1,2].set_title(f'Recovered, d={np.round(Z_rec_loss,2)}')
 
-        ax[2*i+1,3].imshow(np.swapaxes(np.swapaxes((Z_iden[idx[1,i]].numpy()+1)/2,0,2),0,1))
+        ax[2*i+1,3].imshow(fix_img(Z_iden[idx[i]]))
         ax[2*i+1,3].axis('off')
-        ax[2*i+1,3].set_title(f'Identity, d={np.round(Z_iden_loss,2)}')
+        ax[2*i+1,3].set_title(f'Identity, d={np.round(Z_iden_loss, 2)}')
 
     f.savefig('log_image.png', transparent=True, bbox_inches='tight')
     if plotting == True:
