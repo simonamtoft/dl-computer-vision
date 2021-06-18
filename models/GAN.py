@@ -21,17 +21,34 @@ class ResBlock(nn.Module):
 class Generator(nn.Module):
     def __init__(self, f=64, blocks=6):
         super(Generator, self).__init__()
-        layers = [nn.ReflectionPad2d(3),
-                  nn.Conv2d(  3,   f, 7, 1, 0), norm_layer(  f), nn.ReLU(True),
-                  nn.Conv2d(  f, 2*f, 3, 2, 1), norm_layer(2*f), nn.ReLU(True),
-                  nn.Conv2d(2*f, 4*f, 3, 2, 1), norm_layer(4*f), nn.ReLU(True)]
-        for i in range(int(blocks)):
+
+        # Encoding layer
+        layers = [
+            nn.ReflectionPad2d(3),
+            nn.Conv2d(  3,   f, kernel_size=7, stride=1, padding=0), 
+            norm_layer(  f), 
+            nn.ReLU(True),
+            nn.Conv2d(  f, 2*f, kernel_size=3, stride=2, padding=1), 
+            norm_layer(2*f), 
+            nn.ReLU(True),
+            nn.Conv2d(2*f, 4*f, kernel_size=3, stride=2, padding=1), 
+            norm_layer(4*f), 
+            nn.ReLU(True)
+        ]
+
+        # Transformation (Resnet) layer
+        for _ in range(int(blocks)):
             layers.append(ResBlock(4*f))
+        
+        # Decoding layer
         layers.extend([ #Uses a subpixel convolution (PixelShuffle) for upsamling 
-                nn.ConvTranspose2d(4*f, 4*2*f, 3, 1, 1), nn.PixelShuffle(2), norm_layer(2*f), nn.ReLU(True),
-                nn.ConvTranspose2d(2*f,   4*f, 3, 1, 1), nn.PixelShuffle(2), norm_layer(  f), nn.ReLU(True),
+                nn.ConvTranspose2d(4*f, 4*2*f, kernel_size=3, stride=1, padding=1), 
+                nn.PixelShuffle(2), norm_layer(2*f), nn.ReLU(True),
+                nn.ConvTranspose2d(2*f,   4*f, kernel_size=3, stride=1, padding=1), 
+                nn.PixelShuffle(2), norm_layer(  f), nn.ReLU(True),
                 nn.ReflectionPad2d(3), nn.Conv2d(f, 3, 7, 1, 0),
-                nn.Tanh()])
+                nn.Tanh()
+        ])
         self.conv = nn.Sequential(*layers)
         
     def forward(self, x):
