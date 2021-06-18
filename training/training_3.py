@@ -4,51 +4,81 @@ import matplotlib.pyplot as plt
 from IPython import display
 import wandb
 
-from helpers import gan_loss_func
+from helpers import gan_im_loss
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-def train_gan(config, g, d, train_loader, p_name='tmp'):
-    # Initialize wandb run
-    wandb.init(project=p_name, config=config)
+def train_gan(config, g_h2z, g_z2h, d_h, d_z, train_loader_zebra, train_loader_horse, p_name='tmp'):
+    #  Define loss functions as LSGAN
+    def real_loss(x):
+        return torch.mean((x - 1)**2)
 
-    # Optimizers for generator and discriminator
-    g_opt = torch.optim.Adam(g.parameters(), lr=config["lr_g"], betas=(0.5, 0.999))
-    d_opt = torch.optim.Adam(d.parameters(), lr=config["lr_d"], betas=(0.5, 0.999))
-
-    # set loss function
-    gan_loss = gan_loss_func(config)
+    def fake_loss(x):
+        return torch.mean(x**2)
     
-    # Create a figure
-    plt.figure(figsize=(20, 10))
-    subplots = [plt.subplot(2, 6, k+1) for k in range(12)]
+    # Define image loss as L2 loss
+    im_loss = gan_im_loss(config)
+    
+    # Initialize wandb run
+    # wandb.init(project=p_name, config=config)
+
+    # Optimizers for generators and discriminators
+    g_param = list(g_h2z.parameters()) + list(g_z2h.parameters())
+    d_param = list(d_h.parameters()) + list(d_z.parameters())
+    g_opt = torch.optim.Adam(g_param, lr=config["lr_g"], betas=(0.5, 0.999))
+    d_opt = torch.optim.Adam(d_param, lr=config["lr_d"], betas=(0.5, 0.999))
+
+    # Converte loaders to iterators
+    data_zebra = iter(train_loader_zebra)
+    data_horse = iter(train_loader_horse)
 
     # perform training
     for epoch in range(config['epochs']):
-        for minibatch_no, (x, target) in enumerate(train_loader):
-            x_real = x.to(device) * 2 - 1  # scale to (-1, 1) range
-            z = torch.randn(x.shape[0], 100).to(device)
-            x_fake = g(z)
+        for i in range(len(data_zebra)):
+            # Get batch
+            x_zebra = next(data_zebra).to(device)
+            x_horse = next(data_horse).to(device)
+
+            # Generate fake images
+            x_zebra_fake = g_h2z(x_horse)
+            x_horse_fake = g_z2h(x_zebra)
+
+            # Generate recreational images
+            x_zebra_rec = g_h2z(x_horse_fake)
+            x_horse_rec = g_z2h(x_zebra_fake)
             
             # Update discriminator 
-            d.zero_grad()
-            d_loss = gan_loss.discriminator(d, x_real, x_fake)
+            d_opt.zero_grad()
+            d_loss = real_loss(d_h(x_horse))
+            d_loss += fake_loss(d_h(x_horse_fake.detach()))
+            d_loss += real_loss(d_z(x_zebra))
+            d_loss += fake_loss(d_z(x_zebra_fake.detach()))
             d_loss.backward()
             d_opt.step()
 
             # Update generator
-            g.zero_grad()
-            g_loss = gan_loss.generator(d, x_real, x_fake)
+            g_opt.zero_grad()
+            g_loss_fool = real_loss(d_h(x_horse_fake))
+            g_loss_fool += real_loss(d_z(x_zebra_fake))
+            g_loss_fool *= config['g_loss_weight'][0]
+            g_loss_cycle = im_loss(x_horse, x_horse_rec)
+            g_loss_cycle += im_loss(x_zebra, x_zebra_rec)
+            g_loss_cycle *= config['g_loss_weight'][1]
+            g_loss_iden = im_loss(g_h2z(x_zebra), x_zebra)
+            g_loss_iden += im_loss(g_z2h(x_horse), x_horse)
+            g_loss_iden *= config['g_loss_weight'][2]
+            g_loss = g_loss_fool + g_loss_cycle + g_loss_iden
             g_loss.backward()
             g_opt.step()
 
             assert(not np.isnan(d_loss.item()))
             #Plot results every 100 minibatches
-            if minibatch_no % 100 == 0:
-                title = 'Epoch {e} - minibatch {n}/{d}'.format(e=epoch+1, n=minibatch_no, d=len(train_loader))
-                visualize_train(config, g, d, x_real, x_fake, subplots, d_loss, title)
-    wandb.finish()
+            if i % 100 == 0:
+                continue
+                # title = 'Epoch {e} - minibatch {n}/{d}'.format(e=epoch+1, n=i, d=len(train_loader))
+                # visualize_train(config, g, d, x_real, x_fake, subplots, d_loss, title)
+    # wandb.finish()
 
 
 def visualize_train(config, g, d, x_real, x_fake, subplots, d_loss, title):

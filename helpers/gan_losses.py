@@ -56,3 +56,12 @@ def gan_loss_func(config):
         return LSGANLoss(config['loss_func'][1])
     else:
         raise Exception(f"Specified loss function '{loss_name}' not implemented.")
+
+
+def gan_im_loss(config):
+    if config['img_loss'] == 'l1':
+        return nn.L1Loss()
+    elif config['img_loss'] == 'l2':
+        return nn.MSELoss()
+    else:
+        raise Exception(f"Provided image loss {config['img_loss']} not defined.")
