@@ -22,14 +22,14 @@ class LSGANLoss(nn.Module):
         self.c = params[2]
     
     def discriminator(self, d, x_real, x_fake):
-        y_real = torch.sigmoid(d(x_real))
-        y_fake = torch.sigmoid(d(x_fake.detach()))
+        y_real = d(x_real)
+        y_fake = d(x_fake.detach())
         term1 = torch.mean((y_real - self.b)**2)
         term2 = torch.mean((y_fake - self.a)**2)
         return 0.5 * (term1 + term2)
     
     def generator(self, d, x_real, x_fake):
-        y_fake = torch.sigmoid(d(x_fake))
+        y_fake = d(x_fake)
         return 0.5 * torch.mean((y_fake - self.c)**2)
 
 
