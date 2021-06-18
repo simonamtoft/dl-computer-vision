@@ -112,14 +112,14 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, zebra_loader, horse_loader, 
 
 def visualize_train(H_real,Z_real,H_fake,Z_fake,H_rec,Z_rec,H_iden,Z_iden,H_losses=[1,1,1],Z_losses=[1,1,1]):
   # Convet to cpu device
-  H_real = H_real.cpu()
-  Z_real = Z_real.cpu()
-  H_fake = H_fake.cpu()
-  Z_fake = Z_fake.cpu()
-  H_rec = H_rec.cpu()
-  Z_rec = Z_rec.cpu()
-  H_iden = H_iden.cpu()
-  Z_iden = Z_iden.cpu()
+  H_real = H_real.detach().cpu()
+  Z_real = Z_real.detach().cpu()
+  H_fake = H_fake.detach().cpu()
+  Z_fake = Z_fake.detach().cpu()
+  H_rec = H_rec.detach().cpu()
+  Z_rec = Z_rec.detach().cpu()
+  H_iden = H_iden.detach().cpu()
+  Z_iden = Z_iden.detach().cpu()
 
   # How many rows should be shown
   n_rows = 1 if H_real.shape[0]<2 else 2
