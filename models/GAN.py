@@ -26,14 +26,11 @@ class Generator(nn.Module):
         layers = [
             nn.ReflectionPad2d(3),
             nn.Conv2d(  3,   f, kernel_size=7, stride=1, padding=0), 
-            norm_layer(  f), 
-            nn.ReLU(True),
+            norm_layer(  f), nn.ReLU(True),
             nn.Conv2d(  f, 2*f, kernel_size=3, stride=2, padding=1), 
-            norm_layer(2*f), 
-            nn.ReLU(True),
+            norm_layer(2*f), nn.ReLU(True),
             nn.Conv2d(2*f, 4*f, kernel_size=3, stride=2, padding=1), 
-            norm_layer(4*f), 
-            nn.ReLU(True)
+            norm_layer(4*f), nn.ReLU(True)
         ]
 
         # Transformation (Resnet) layer
@@ -69,11 +66,14 @@ class Discriminator(nn.Module):
             nn.LeakyReLU(relu_val, True),
             nn.Conv2d(2*f, 4*f, kernel_size=4, stride=2, padding=1), 
             norm_layer(4*f),
-            nn.LeakyReLU(relu_val, True)
+            nn.LeakyReLU(relu_val, True),
+            nn.Conv2d(4*f, 8*f, kernel_size=4, stride=1, padding=1), 
+            norm_layer(8*f),
+            nn.LeakyReLU(relu_val, True),
         )
 
         self.final = nn.Sequential(
-            nn.Conv2d(4*f, 1, kernel_size=4, stride=1, padding=1)
+            nn.Conv2d(8*f, 1, kernel_size=4, stride=1, padding=1)
         )
 
     def forward(self, x):
