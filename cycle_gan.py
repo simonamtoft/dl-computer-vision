@@ -2,7 +2,6 @@ import os
 import torch
 from torchvision.transforms import ToTensor, Resize, Compose
 from torch.utils.data.dataloader import DataLoader
-
 from models import Generator, Discriminator
 from training import train_cycle_gan
 from data import HORSES, ZEBRAS
@@ -14,10 +13,10 @@ config = {
     'batch_size': 16,
     'epochs': 50,
     'lr_d': 2*1e-4,
-    'lr_g': 1*1e-4,
+    'lr_g': 2*1e-4,
     'g_loss_weight': [1, 10, 5],
     'n_features': 64,
-    'n_blocks': 6,
+    'n_blocks': 9,
     'relu_val': 0.2,
     'img_loss': 'l2',
     'buffer_size': 50,
@@ -28,6 +27,9 @@ g_h2z = Generator(config).to(device)
 g_z2h = Generator(config).to(device)
 d_h = Discriminator(config).to(device)
 d_z = Discriminator(config).to(device)
+
+train_transform = transforms.Compose([transforms.Resize((128,128)),transforms.ToTensor()])
+test_transform = transforms.Compose([transforms.Resize((128,128)),transforms.ToTensor()])
 
 # Get data
 transforms = Compose([
