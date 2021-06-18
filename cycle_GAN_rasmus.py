@@ -10,13 +10,13 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Setup training config
 config = {
-    'batch_size': 8,
-    'epochs': 10,
+    'batch_size': 16,
+    'epochs': 300,
     'lr_d': 4*1e-4,
     'lr_g': 2*1e-4,
     'g_loss_weight': [1, 10, 5],
-    'n_features': 64,
-    'n_blocks': 9,
+    'n_features': 128,
+    'n_blocks': 12,
     'relu_val': 0.2,
     'img_loss': ['l2', 'l1'], # cycle, identity 
     'buffer_size': 10,
@@ -33,7 +33,7 @@ test_transform = transforms.Compose([transforms.Resize((128,128)),transforms.ToT
 
 train_transform = transforms.Compose([
                     transforms.Pad(50, padding_mode='reflect'),
-                    transforms.RandomAffine(degrees=5,translate=(0.1,0.1),scale=(1,1.05)),
+                    transforms.RandomAffine(degrees=7,translate=(0.1,0.1),scale=(1,1.1)),
                     transforms.Resize((128,128)),
                     transforms.RandomHorizontalFlip(p=0.5),
                     transforms.ToTensor()])
