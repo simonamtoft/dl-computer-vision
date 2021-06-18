@@ -164,6 +164,15 @@ def visualize_train(im_loss_1, im_loss_2, g_h2z, g_z2h, d_h, d_z, x_h, x_z, glw,
     def fix_img(x):
         return np.swapaxes(np.swapaxes((x.cpu().numpy() + 1)/2, 0, 2), 0, 1)
 
+    #print(x_horse.shape)
+    #print(x_zebra.shape)
+
+    # Select images from batches to show
+    # The batch-shapes might be different
+    idx = np.arange(0,min([x_horse.shape[0],x_zebra.shape[0]]))
+    np.random.shuffle(idx)
+    idx = idx[:2] if len(idx)>1 else idx[:1]
+
     with torch.no_grad(): 
         # Generate fake images
         z_fake = g_h2z(x_h)
