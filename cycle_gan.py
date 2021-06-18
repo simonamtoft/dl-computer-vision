@@ -33,9 +33,9 @@ transform = transforms.Compose([
 
 # Load zebra and horse image data
 trainset_z = ZEBRAS(dataset="train", transform=transform)
-testset_z = ZEBRAS(dataset= "test", transform=transform)
-trainset_h = HORSES(dataset = "train", transform=transform)
-testset_h = HORSES(dataset = "test", transform=transform)
+testset_z = ZEBRAS(dataset="test", transform=transform)
+trainset_h = HORSES(dataset="train", transform=transform)
+testset_h = HORSES(dataset="test", transform=transform)
 
 # Setup DataLoaders
 zebra_loader = DataLoader(trainset_z, batch_size=config['batch_size'], shuffle=True)
