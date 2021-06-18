@@ -123,10 +123,8 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, zebra_loader, horse_loader, 
             logging['g_loss_cycle'] += g_loss_cycle.item()/len(data_zebra)
             logging['g_loss_iden'] += g_loss_iden.item()/len(data_zebra)
 
-            # Plot results every 100 minibatches
-            assert(not np.isnan(d_loss.item()))
-            if i % 100 == 0:    
-                visualize_train(config, g_h2z, g_z2h, d_h, d_z, x_horse, x_zebra, plotting)
+        # Make a visualization each epoch (logged to wandb)
+        visualize_train(config, g_h2z, g_z2h, d_h, d_z, x_horse, x_zebra, plotting)
         
         # Save state every epoch
         save_state(g_h2z, g_z2h, d_h, d_z)
