@@ -41,9 +41,9 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, zebra_loader, horse_loader, 
         horse_loader    :   A Dataloader of the horse training data
         p_name          :   A string, determining the name of the project on wandb
     """    
-    # Define image loss as L2 loss
-    im_loss = gan_im_loss(config)
-    
+    # Define image losses
+    im_loss_1, im_loss_2  = gan_im_loss(config)
+
     # Initialize wandb run
     wandb.init(project=p_name, config=config)
 
@@ -117,11 +117,11 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, zebra_loader, horse_loader, 
             g_loss_fool = real_loss(d_h(x_horse_fake))
             g_loss_fool += real_loss(d_z(x_zebra_fake))
             g_loss_fool *= config['g_loss_weight'][0]
-            g_loss_cycle = im_loss(x_horse, x_horse_rec)
-            g_loss_cycle += im_loss(x_zebra, x_zebra_rec)
+            g_loss_cycle = im_loss_1(x_horse, x_horse_rec)
+            g_loss_cycle += im_loss_1(x_zebra, x_zebra_rec)
             g_loss_cycle *= config['g_loss_weight'][1]
-            g_loss_iden = im_loss(g_h2z(x_zebra), x_zebra)
-            g_loss_iden += im_loss(g_z2h(x_horse), x_horse)
+            g_loss_iden = im_loss_2(g_h2z(x_zebra), x_zebra)
+            g_loss_iden += im_loss_2(g_z2h(x_horse), x_horse)
             g_loss_iden *= config['g_loss_weight'][2]
             g_loss = g_loss_fool + g_loss_cycle + g_loss_iden
             g_loss.backward()
