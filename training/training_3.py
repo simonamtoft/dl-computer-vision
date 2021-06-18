@@ -226,5 +226,4 @@ def visualize_train(config, H2Z, Z2H, d_H, d_Z, x_horse, x_zebra, plotting=False
     else:
         plt.close()
     wandb.log({"Train Visualization": wandb.Image("log_image.png")})
-
     return None
