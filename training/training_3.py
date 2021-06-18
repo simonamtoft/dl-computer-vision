@@ -127,36 +127,36 @@ def visualize_train(H_real,Z_real,H_fake,Z_fake,H_rec,Z_rec,H_iden,Z_iden,H_loss
   f,ax = plt.subplots(n_rows*2,4,figsize=(8,n_rows*5))
   for i in range(n_rows):
     # Horses
-    ax[2*i,0].imshow(np.swapaxes(np.swapaxes(H_real[i].numpy(),0,2),0,1))
+    ax[2*i,0].imshow(np.swapaxes(np.swapaxes((H_real[i].numpy()+1)/2,0,2),0,1))
     ax[2*i,0].axis('off')
     ax[2*i,0].set_title('Original')
 
-    ax[2*i,1].imshow(np.swapaxes(np.swapaxes(Z_fake[i].numpy(),0,2),0,1))
+    ax[2*i,1].imshow(np.swapaxes(np.swapaxes((Z_fake[i].numpy()+1)/2,0,2),0,1))
     ax[2*i,1].axis('off')
     ax[2*i,1].set_title(f'Fake, d={H_losses[0]}')
 
-    ax[2*i,2].imshow(np.swapaxes(np.swapaxes(H_rec[i].numpy(),0,2),0,1))
+    ax[2*i,2].imshow(np.swapaxes(np.swapaxes((H_rec[i].numpy()+1)/2,0,2),0,1))
     ax[2*i,2].axis('off')
     ax[2*i,2].set_title(f'Recovered, d={H_losses[1]}')
 
-    ax[2*i,3].imshow(np.swapaxes(np.swapaxes(H_iden[i].numpy(),0,2),0,1))
+    ax[2*i,3].imshow(np.swapaxes(np.swapaxes((H_iden[i].numpy()+1)/2,0,2),0,1))
     ax[2*i,3].axis('off')
     ax[2*i,3].set_title(f'Identity, d={H_losses[2]}')
 
     # Zebras
-    ax[2*i+1,0].imshow(np.swapaxes(np.swapaxes(Z_real[i].numpy(),0,2),0,1))
+    ax[2*i+1,0].imshow(np.swapaxes(np.swapaxes((Z_real[i].numpy()+1)/2,0,2),0,1))
     ax[2*i+1,0].axis('off')
     ax[2*i+1,0].set_title('Original')
 
-    ax[2*i+1,1].imshow(np.swapaxes(np.swapaxes(H_fake[i].numpy(),0,2),0,1))
+    ax[2*i+1,1].imshow(np.swapaxes(np.swapaxes((H_fake[i].numpy()+1)/2,0,2),0,1))
     ax[2*i+1,1].axis('off')
     ax[2*i+1,1].set_title(f'Fake, d={Z_losses[0]}')
 
-    ax[2*i+1,2].imshow(np.swapaxes(np.swapaxes(Z_rec[i].numpy(),0,2),0,1))
+    ax[2*i+1,2].imshow(np.swapaxes(np.swapaxes((Z_rec[i].numpy()+1)/2,0,2),0,1))
     ax[2*i+1,2].axis('off')
     ax[2*i+1,2].set_title(f'Recovered, d={Z_losses[1]}')
 
-    ax[2*i+1,3].imshow(np.swapaxes(np.swapaxes(Z_iden[i].numpy(),0,2),0,1))
+    ax[2*i+1,3].imshow(np.swapaxes(np.swapaxes((Z_iden[i].numpy()+1)/2,0,2),0,1))
     ax[2*i+1,3].axis('off')
     ax[2*i+1,3].set_title(f'Identity, d={Z_losses[2]}')
   plt.show()
