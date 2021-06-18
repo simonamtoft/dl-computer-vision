@@ -110,28 +110,57 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, zebra_loader, horse_loader, 
     # wandb.finish()
 
 
-def visualize_train(config, g, d, x_real, x_fake, subplots, d_loss, title):
-    with torch.no_grad():
-        P = torch.sigmoid(d(x_fake))
-        for k in range(11):
-            x_fake_k = x_fake[k].cpu().squeeze()/2+.5
-            subplots[k].imshow(x_fake_k, cmap='gray')
-            subplots[k].set_title('d(x)=%.2f' % P[k])
-            subplots[k].axis('off')
-        z = torch.randn(config['batch_size'], 100).to(device)
-        H1 = torch.sigmoid(d(g(z))).cpu()
-        H2 = torch.sigmoid(d(x_real)).cpu()
-        plot_min = min(H1.min(), H2.min()).item()
-        plot_max = max(H1.max(), H2.max()).item()
-        subplots[-1].cla()
-        subplots[-1].hist(H1.squeeze(), label='fake', range=(plot_min, plot_max), alpha=0.5)
-        subplots[-1].hist(H2.squeeze(), label='real', range=(plot_min, plot_max), alpha=0.5)
-        subplots[-1].legend()
-        subplots[-1].set_xlabel('Probability of being real')
-        subplots[-1].set_title('Discriminator loss: %.2f' % d_loss.item())
-        
-        plt.gcf().suptitle(title, fontsize=20)
-        plt.savefig('log_image.png', transparent=True, bbox_inches='tight')
-        display.display(plt.gcf())
-        display.clear_output(wait=True)
-        wandb.log({"Train Visualization": wandb.Image("log_image.png")})
+def visualize_train(H_real,Z_real,H_fake,Z_fake,H_rec,Z_rec,H_iden,Z_iden,H_losses=[1,1,1],Z_losses=[1,1,1]):
+  # Convet to cpu device
+  H_real = H_real.cpu()
+  Z_real = Z_real.cpu()
+  H_fake = H_fake.cpu()
+  Z_fake = Z_fake.cpu()
+  H_rec = H_rec.cpu()
+  Z_rec = Z_rec.cpu()
+  H_iden = H_iden.cpu()
+  Z_iden = Z_iden.cpu()
+
+  # How many rows should be shown
+  n_rows = 1 if H_real.shape[0]<2 else 2
+
+  f,ax = plt.subplots(n_rows*2,4,figsize=(8,n_rows*5))
+  for i in range(n_rows):
+    # Horses
+    ax[2*i,0].imshow(np.swapaxes(np.swapaxes(H_real[i].numpy(),0,2),0,1))
+    ax[2*i,0].axis('off')
+    ax[2*i,0].set_title('Original')
+
+    ax[2*i,1].imshow(np.swapaxes(np.swapaxes(Z_fake[i].numpy(),0,2),0,1))
+    ax[2*i,1].axis('off')
+    ax[2*i,1].set_title(f'Fake, d={H_losses[0]}')
+
+    ax[2*i,2].imshow(np.swapaxes(np.swapaxes(H_rec[i].numpy(),0,2),0,1))
+    ax[2*i,2].axis('off')
+    ax[2*i,2].set_title(f'Recovered, d={H_losses[1]}')
+
+    ax[2*i,3].imshow(np.swapaxes(np.swapaxes(H_iden[i].numpy(),0,2),0,1))
+    ax[2*i,3].axis('off')
+    ax[2*i,3].set_title(f'Identity, d={H_losses[2]}')
+
+    # Zebras
+    ax[2*i+1,0].imshow(np.swapaxes(np.swapaxes(Z_real[i].numpy(),0,2),0,1))
+    ax[2*i+1,0].axis('off')
+    ax[2*i+1,0].set_title('Original')
+
+    ax[2*i+1,1].imshow(np.swapaxes(np.swapaxes(H_fake[i].numpy(),0,2),0,1))
+    ax[2*i+1,1].axis('off')
+    ax[2*i+1,1].set_title(f'Fake, d={Z_losses[0]}')
+
+    ax[2*i+1,2].imshow(np.swapaxes(np.swapaxes(Z_rec[i].numpy(),0,2),0,1))
+    ax[2*i+1,2].axis('off')
+    ax[2*i+1,2].set_title(f'Recovered, d={Z_losses[1]}')
+
+    ax[2*i+1,3].imshow(np.swapaxes(np.swapaxes(Z_iden[i].numpy(),0,2),0,1))
+    ax[2*i+1,3].axis('off')
+    ax[2*i+1,3].set_title(f'Identity, d={Z_losses[2]}')
+  plt.show()
+  #f.savefig('log_image.png', transparent=True, bbox_inches='tight')
+  display.clear_output(wait=True)
+  #wandb.log({"Train Visualization": wandb.Image("log_image.png")})
+  return None
