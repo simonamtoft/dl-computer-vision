@@ -41,7 +41,8 @@ class Generator(nn.Module):
             layers.append(ResBlock(4*f))
         
         # Decoding layer
-        layers.extend([ #Uses a subpixel convolution (PixelShuffle) for upsamling 
+        # Uses a subpixel convolution (PixelShuffle) for upsamling 
+        layers.extend([ 
                 nn.ConvTranspose2d(4*f, 4*2*f, kernel_size=3, stride=1, padding=1), 
                 nn.PixelShuffle(2), norm_layer(2*f), nn.ReLU(True),
                 nn.ConvTranspose2d(2*f,   4*f, kernel_size=3, stride=1, padding=1), 
@@ -54,9 +55,26 @@ class Generator(nn.Module):
     def forward(self, x):
         return self.conv(x)
 
+
 class Discriminator(nn.Module):
-    def __init__(self, f=64, blocks=6):
+    def __init__(self, f=64, relu_val=0.2):
         super(Discriminator, self).__init__()
 
-    def forward(self):
-        return None
+        self.conv = nn.Sequential(
+            nn.Conv2d(  3,   f, kernel_size=4, stride=2, padding=1), 
+            norm_layer(  f), 
+            nn.LeakyReLU(relu_val, True),
+            nn.Conv2d(  f, 2*f, kernel_size=4, stride=2, padding=1), 
+            norm_layer(2*f), 
+            nn.LeakyReLU(relu_val, True),
+            nn.Conv2d(2*f, 4*f, kernel_size=4, stride=2, padding=1), 
+            norm_layer(4*f),
+            nn.LeakyReLU(relu_val, True)
+        )
+
+        self.final = nn.Sequential(
+            nn.Conv2d(4*f, 1, kernel_size=4, stride=1, padding=1)
+        )
+
+    def forward(self, x):
+        return self.final(self.conv(x))
