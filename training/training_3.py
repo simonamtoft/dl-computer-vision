@@ -1,3 +1,4 @@
+import path
 import numpy as np
 import torch
 import matplotlib.pyplot as plt
@@ -54,6 +55,8 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, zebra_loader, horse_loader, 
 
     # perform training
     for epoch in range(config['epochs']):
+        print(f"Epoch {epoch}/{config['epochs']}")
+
         # Converte loaders to iterators
         data_zebra = iter(zebra_loader)
         data_horse = iter(horse_loader)
@@ -136,12 +139,11 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, zebra_loader, horse_loader, 
     # Finalize run
     wandb.finish()
 
-
 def save_state(g_h2z, g_z2h, d_h, d_z):
-    torch.save(g_h2z, save_folder + 'g_h2z.pt')
-    torch.save(g_z2h, save_folder + 'g_z2h.pt')
-    torch.save(d_h, save_folder + 'd_h.pt')
-    torch.save(d_z, save_folder + 'd_z.pt')
+    torch.save(g_h2z, path.join(save_folder, 'g_h2z.pt'))
+    torch.save(g_z2h, path.join(save_folder + 'g_z2h.pt'))
+    torch.save(d_h, path.join(save_folder + 'd_h.pt'))
+    torch.save(d_z, path.join(save_folder + 'd_z.pt'))
 
 
 def visualize_train(H_real,Z_real,H_fake,Z_fake,H_rec,Z_rec,H_iden,Z_iden,H_losses=[1,1,1],Z_losses=[1,1,1], plotting=False):
