@@ -41,3 +41,12 @@ class ZEBRAS(torch.utils.data.Dataset):
     image = Image.open(image_path).convert('RGB')
     X = self.transform(image)
     return X
+  
+#batch_size = 1
+
+#transform = transforms.Compose([transforms.Resize((128,128)),transforms.ToTensor()])
+
+#trainset_H = HORSES(dataset = "train", transform=transform)
+#testset_H = HORSES(dataset = "test", transform=transform)
+#trainset_Z = ZEBRAS(dataset = "train", transform=transform)
+#testset_Z = ZEBRAS(dataset = "test", transform=transform)
