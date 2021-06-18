@@ -32,8 +32,8 @@ transform = transforms.Compose([
 ])
 
 # Load zebra and horse image data
-trainset_z = ZEBRAS(dataset = "train", transform=transform)
-testset_z = ZEBRAS(dataset = "test", transform=transform)
+trainset_z = ZEBRAS(dataset="train", transform=transform)
+testset_z = ZEBRAS(dataset= "test", transform=transform)
 trainset_h = HORSES(dataset = "train", transform=transform)
 testset_h = HORSES(dataset = "test", transform=transform)
 
@@ -42,10 +42,10 @@ zebra_loader = DataLoader(trainset_z, batch_size=config['batch_size'], shuffle=T
 horse_loader = DataLoader(trainset_h, batch_size=config['batch_size'], shuffle=True)
 
 # Instantiate Cycle GAN network
-d_h = Discriminator(config)
-d_z = Discriminator(config)
-g_h2z = Generator(config)
-g_z2h = Generator(config)
+d_h = Discriminator(config).to(device)
+d_z = Discriminator(config).to(device)
+g_h2z = Generator(config).to(device)
+g_z2h = Generator(config).to(device)
 
 # Train network
 train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, zebra_loader, horse_loader, project_name)
