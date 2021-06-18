@@ -1,51 +1,48 @@
-# Project 3: Convert Horses to Zebras with Cycle GANs
+import os
 import torch
-from torch.utils.data import DataLoader
-import torchvision.transforms as transforms
-
-from data import HORSES, ZEBRAS
-from models import Discriminator, Generator
+import wandb
+from torch.utils.data.dataloader import DataLoader
+from torchvision.transforms import ToTensor
+from torchsummary import summary
+from models import Generator, Discriminator
 from training import train_cycle_gan
+from data import HORSES, ZEBRAS
 
+if torch.cuda.is_available():
+    print("The code will run on GPU.")
+else:
+    print("The code will run on CPU.")
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# Define name of project on weight and biases site
-project_name = "project-3"
+if not os.path.exists('./horse2zebra'):
+  import gdown
+  from zipfile import ZipFile
+  url = 'https://drive.google.com/uc?id=1PBHjsYy6cX9PFuH72SWMPSTxHrL6RPhN'
+  gdown.download(url, './horse2zebra.zip', quiet=False)
+  with ZipFile('horse2zebra.zip', 'r') as zipObj:
+        zipObj.extractall()
 
-# Set config of training run
 config = {
-    'batch_size': 1,
+    'batch_size': 16,
     'epochs': 10,
-    'lr_d': 4*1e-4,
+    'lr_d': 2*1e-4,
     'lr_g': 1*1e-4,
+    'g_loss_weight': [1, 10, 5],
     'n_features': 64,
     'n_blocks': 6,
     'relu_val': 0.2,
     'img_loss': 'l2',
-    'g_loss_weight': [1, 10, 5]
 }
 
-# Define data transforms
-transform = transforms.Compose([
-    transforms.Resize((128, 128)), 
-    transforms.ToTensor()
-])
-
-# Load zebra and horse image data
-trainset_z = ZEBRAS(dataset="train", transform=transform)
-testset_z = ZEBRAS(dataset="test", transform=transform)
-trainset_h = HORSES(dataset="train", transform=transform)
-testset_h = HORSES(dataset="test", transform=transform)
-
-# Setup DataLoaders
-zebra_loader = DataLoader(trainset_z, batch_size=config['batch_size'], shuffle=True)
-horse_loader = DataLoader(trainset_h, batch_size=config['batch_size'], shuffle=True)
-
-# Instantiate Cycle GAN network
-d_h = Discriminator(config).to(device)
-d_z = Discriminator(config).to(device)
 g_h2z = Generator(config).to(device)
 g_z2h = Generator(config).to(device)
+d_h = Discriminator(config).to(device)
+d_z = Discriminator(config).to(device)
 
-# Train network
-train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, zebra_loader, horse_loader, project_name)
+z_train_loader = DataLoader(ZEBRAS(dataset="train", transform=ToTensor()), batch_size=config["batch_size"], num_workers=4)
+h_train_loader = DataLoader(HORSES(dataset="train", transform=ToTensor()), batch_size=config["batch_size"], num_workers=4)
+z_test_loader = DataLoader(ZEBRAS(dataset="test", transform=ToTensor()), batch_size=config["batch_size"], num_workers=4)
+h_test_loader = DataLoader(HORSES(dataset="test", transform=ToTensor()), batch_size=config["batch_size"], num_workers=4)
+
+p_name = "Test CycleGAN"
+train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_train_loader, h_train_loader, p_name)
