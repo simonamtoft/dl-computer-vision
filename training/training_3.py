@@ -55,7 +55,7 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, zebra_loader, horse_loader, 
 
     # perform training
     for epoch in range(config['epochs']):
-        print(f"Epoch {epoch}/{config['epochs']}")
+        print(f"Epoch {epoch+1}/{config['epochs']}")
 
         # Converte loaders to iterators
         data_zebra = iter(zebra_loader)
