@@ -1,13 +1,4 @@
 # Project 3: Convert Horses to Zebras with Cycle GANs
-
-import os
-import numpy as np
-import glob
-import time
-import PIL.Image as Image
-from itertools import chain
-from collections import OrderedDict
-
 import torch
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
