@@ -158,7 +158,7 @@ def visualize_train(H_real,Z_real,H_fake,Z_fake,H_rec,Z_rec,H_iden,Z_iden,H_loss
     # How many rows should be shown
     n_rows = 1 if H_real.shape[0]<2 else 2
 
-    f, ax = plt.subplots(n_rows*2,4,figsize=(8,n_rows*5))
+    f, ax = plt.subplots(n_rows*2, 4, figsize=(8, n_rows*5))
     for i in range(n_rows):
         # Horses
         ax[2*i,0].imshow(np.swapaxes(np.swapaxes(H_real[i].numpy(),0,2),0,1))
