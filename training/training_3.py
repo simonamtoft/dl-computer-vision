@@ -18,7 +18,7 @@ def fake_loss(x):
     return torch.mean(x**2)
 
 
-def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, zebra_loader, horse_loader, p_name='tmp'):
+def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, zebra_loader, horse_loader, p_name='tmp', plotting=False):
     """Training function for the Cycle GAN network
     Inputs
         config          :   A config dict that is sent to weight and biases, 
@@ -125,8 +125,8 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, zebra_loader, horse_loader, 
 
             # Plot results every 100 minibatches
             assert(not np.isnan(d_loss.item()))
-            if i % 100 == 0:
-                visualize_train(config, g_h2z, g_z2h, d_h, d_z, x_horse, x_zebra)
+            if i % 100 == 0:    
+                visualize_train(config, g_h2z, g_z2h, d_h, d_z, x_horse, x_zebra, plotting)
         
         # Save state every epoch
         save_state(g_h2z, g_z2h, d_h, d_z)
