@@ -9,13 +9,8 @@ from itertools import chain
 from collections import OrderedDict
 
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
-import matplotlib.pylab as plt
-import ipywidgets
-from IPython import display
 
 from data import HORSES, ZEBRAS
 from models import Discriminator, Generator
