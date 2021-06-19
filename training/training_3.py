@@ -102,7 +102,7 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
             'g_loss_cycle': 0,
             'g_loss_iden': 0,
             'lr_d': config['lr_d'],
-            'lr_g': config['lr_g']s
+            'lr_g': config['lr_g']
         }
 
         # Go over all batches
