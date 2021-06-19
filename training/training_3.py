@@ -164,8 +164,8 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
         g_sched.step()
         d_sched.step()
 
-        logging['lr_g'] = g_sched.get_lr()
-        logging['lr_d'] = d_sched.get_lr()
+        logging['lr_g'] = g_sched.get_lr()[0]
+        logging['lr_d'] = d_sched.get_lr()[0]
 
         # Make a visualization each epoch (logged to wandb)
         visualize_train(im_loss_1, im_loss_2, g_h2z, g_z2h, d_h, d_z, x_h, x_z, glw, plotting)
