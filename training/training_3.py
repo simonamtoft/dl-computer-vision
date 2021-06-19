@@ -56,7 +56,10 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
         z_dl    :   A Dataloader of the zebra training data
         h_dl    :   A Dataloader of the horse training data
         p_name  :   A string, determining the name of the project on wandb
-    """    
+    """
+    print(f"\nStarting training with config:")
+    print(json.dumps(config, sort_keys=False, indent=4))
+
     # Define image losses
     im_loss_1, im_loss_2  = gan_im_loss(config)
     glw = config['g_loss_weight']
@@ -87,6 +90,7 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
         print("Notice: Not using image buffer.")
 
     # perform training
+    print('\nStart of training loop\n')
     for epoch in range(config['epochs']):
         print(f"Epoch {epoch+1}/{config['epochs']}")
 
