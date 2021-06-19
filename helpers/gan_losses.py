@@ -64,7 +64,7 @@ def _gan_im_loss(name):
     elif name == 'l2':
         return nn.MSELoss()
     else:
-        raise Exception(f"Provided image loss {config['img_loss'][0]} not defined.")
+        raise Exception(f"Provided image loss {name} not defined.")
 
 
 def gan_im_loss(config):
