@@ -46,6 +46,9 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
                         'buf_size'      :   Size of the image buffer during 
                                             training for the generated zebra
                                             and horse images.
+                        'lr_decay'      :   A dict for the learning rate
+                                            scheduler with keys 'offset', 
+                                            'delay' and 'n_epochs'.
         g_h2z   :   A generator nn.Module that converts horses to zebras
         g_z2h   :   A generator nn.Module that converts zebras to horses
         d_h     :   A discriminator nn.Module that can discriminate horses
@@ -69,22 +72,19 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
 
     # Set scheduler for learning rate
     if "lr_decay" in config:
-        sched_config = config["lr_decay"]
+        g_sched = torch.optim.lr_scheduler.LambdaLR(g_opt, lr_lambda=lambda_lr(**config["lr_decay"]))
+        d_sched = torch.optim.lr_scheduler.LambdaLR(d_opt, lr_lambda=lambda_lr(**config["lr_decay"]))
+        print("Notice: Using LR decay.")
     else:
-        sched_config = {
-            'offset': 0,
-            'delay': 999,
-            'n_epochs': 999
-        }
-    g_sched = torch.optim.lr_scheduler.LambdaLR(g_opt, lr_lambda=lambda_lr(**sched_config))
-    d_sched = torch.optim.lr_scheduler.LambdaLR(d_opt, lr_lambda=lambda_lr(**sched_config))
+        print("Notice: Not using LR decay.")
 
     # Define image buffer
     if "buf_size" in config and config["buf_size"]:
         h_buffer = ImageBuffer(config["buf_size"])
         z_buffer = ImageBuffer(config["buf_size"])
+        print("Notice: Using image buffer.")
     else:
-        print("Notice: Not using buffer!")
+        print("Notice: Not using image buffer.")
 
     # perform training
     for epoch in range(config['epochs']):
@@ -101,8 +101,8 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
             'g_loss_fool': 0,
             'g_loss_cycle': 0,
             'g_loss_iden': 0,
-            'lr_d': 0,
-            'lr_g': 0
+            'lr_d': config['lr_d'],
+            'lr_g': config['lr_g']s
         }
 
         # Go over all batches
@@ -161,11 +161,15 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
             logging['g_loss_iden'] += g_l_iden.item()/n_z
 
         # Step learning rate scheduler
-        g_sched.step()
-        d_sched.step()
+        if 'lr_decay' in config:
+            g_sched.step()
+            d_sched.step()
 
-        logging['lr_g'] = g_sched.get_lr()
-        logging['lr_d'] = d_sched.get_lr()
+            logging['lr_g'] = g_sched.get_lr()[0]
+            logging['lr_d'] = d_sched.get_lr()[0]
+        else:
+            logging['lr_g'] = config['lr_g']
+            logging['lr_d'] = config['lr_d']
 
         # Make a visualization each epoch (logged to wandb)
         visualize_train(im_loss_1, im_loss_2, g_h2z, g_z2h, d_h, d_z, x_h, x_z, glw, plotting)
