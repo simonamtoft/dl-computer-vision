@@ -17,6 +17,14 @@ def real_loss(x):
 def fake_loss(x):
     return torch.mean(x**2)
 
+def lambda_lr(n_epochs, offset, delay):
+    """
+    Creates learning rate step function for LambdaLR scheduler.
+    Stepping starts after "delay" epochs and will reduce LR to 0 when "n_epochs" has been reached
+    Offset is used continuing training models.
+    """
+    return lambda epoch: 1 - max(0, epoch + offset - delay)/(n_epochs - delay)
+
 
 def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', plotting=False):
     """Training function for the Cycle GAN network
@@ -59,9 +67,20 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
     g_opt = torch.optim.Adam(g_param, lr=config["lr_g"], betas=(0.5, 0.999))
     d_opt = torch.optim.Adam(d_param, lr=config["lr_d"], betas=(0.5, 0.999))
 
+    if "lr_decay" in config:
+        sched_config = config["lr_decay"]
+    else:
+        sched_config = {
+            'offset': 0,
+            'delay': 999,
+            'n_epochs': 999
+        }
+
+    g_sched = torch.optim.lr_scheduler.LambdaLR(g_opt, lr_lambda=lambda_lr(**sched_config))
+    d_sched = torch.optim.lr_scheduler.LambdaLR(d_opt, lr_lambda=lambda_lr(**sched_config))
     if "buf_size" in config and config["buf_size"]:
-        h_buffer = ImageBuffer(config["buf_size"])
-        z_buffer = ImageBuffer(config["buf_size"])
+        fake_h_buffer = ImageBuffer(config["buf_size"])
+        fake_z_buffer = ImageBuffer(config["buf_size"])
     else:
         print("Notice: Not using buffer!")
 
@@ -80,6 +99,8 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
             'g_loss_fool': 0,
             'g_loss_cycle': 0,
             'g_loss_iden': 0,
+            'lr_d': 0,
+            'lr_g': 0
         }
 
         # Go over all batches
@@ -137,11 +158,19 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
             logging['g_loss_cycle'] += g_l_cycle.item()/n_z
             logging['g_loss_iden'] += g_l_iden.item()/n_z
 
+        # Step learning rate scheduler
+        g_sched.step()
+        d_sched.step()
+
+        logging['lr_g'] = g_sched.get_lr()
+        logging['lr_d'] = d_sched.get_lr()
+
         # Make a visualization each epoch (logged to wandb)
         visualize_train(im_loss_1, im_loss_2, g_h2z, g_z2h, d_h, d_z, x_h, x_z, glw, plotting)
         
         # Save state every epoch
         save_state(g_h2z, g_z2h, d_h, d_z)
+
 
         # Log losses to wandb
         wandb.log(logging, commit=True)
