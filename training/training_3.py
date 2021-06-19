@@ -67,6 +67,7 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
     g_opt = torch.optim.Adam(g_param, lr=config["lr_g"], betas=(0.5, 0.999))
     d_opt = torch.optim.Adam(d_param, lr=config["lr_d"], betas=(0.5, 0.999))
 
+    # Set scheduler for learning rate
     if "lr_decay" in config:
         sched_config = config["lr_decay"]
     else:
@@ -75,12 +76,13 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
             'delay': 999,
             'n_epochs': 999
         }
-
     g_sched = torch.optim.lr_scheduler.LambdaLR(g_opt, lr_lambda=lambda_lr(**sched_config))
     d_sched = torch.optim.lr_scheduler.LambdaLR(d_opt, lr_lambda=lambda_lr(**sched_config))
+
+    # Define image buffer
     if "buf_size" in config and config["buf_size"]:
-        fake_h_buffer = ImageBuffer(config["buf_size"])
-        fake_z_buffer = ImageBuffer(config["buf_size"])
+        h_buffer = ImageBuffer(config["buf_size"])
+        z_buffer = ImageBuffer(config["buf_size"])
     else:
         print("Notice: Not using buffer!")
 
