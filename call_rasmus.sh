@@ -10,7 +10,7 @@
 ##BSUB -N
 ### -- Specify the output and error file. %J is the job-id --
 ### -- -o and -e mean append, -oo and -eo mean overwrite --
-#BSUB -oo gpu-%J.out
+#BSUB -oo cycleGAN.out
 ##BSUB -eo gpu-%J.err
 # -- end of LSF options --
 
