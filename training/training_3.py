@@ -164,12 +164,9 @@ def visualize_train(im_loss_1, im_loss_2, g_h2z, g_z2h, d_h, d_z, x_h, x_z, glw,
     def fix_img(x):
         return np.swapaxes(np.swapaxes((x.cpu().numpy() + 1)/2, 0, 2), 0, 1)
 
-    #print(x_horse.shape)
-    #print(x_zebra.shape)
-
     # Select images from batches to show
     # The batch-shapes might be different
-    idx = np.arange(0,min([x_horse.shape[0],x_zebra.shape[0]]))
+    idx = np.arange(0, min([x_h.shape[0], x_z.shape[0]]))
     np.random.shuffle(idx)
     idx = idx[:2] if len(idx)>1 else idx[:1]
 
@@ -194,15 +191,9 @@ def visualize_train(im_loss_1, im_loss_2, g_h2z, g_z2h, d_h, d_z, x_h, x_z, glw,
         z_iden_loss = glw[2]*im_loss_2(x_z, z_iden).cpu().numpy()
         h_iden_loss = glw[2]*im_loss_2(x_h, h_iden).cpu().numpy()
 
-    # Get random indicies from batch
-    n_rows = 1 if x_h.shape[0] < 2 else 2
-    if x_h.shape[0] > x_z.shape[0]:
-        idx = np.random.randint(0, x_z.shape[0], n_rows)
-    else:
-        idx = np.random.randint(0, x_h.shape[0], n_rows)
-
     # Plot images
-    f,ax = plt.subplots(n_rows*2, 4, figsize=(8, n_rows*5))
+    n_rows = len(idx)
+    f, ax = plt.subplots(n_rows*2, 4, figsize=(8, n_rows*5))
     for i in range(n_rows):
         # Horses
         ax[2*i,0].imshow(fix_img(x_h[idx[i]]))
