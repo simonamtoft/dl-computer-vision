@@ -179,6 +179,9 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
         # Log losses to wandb
         wandb.log(logging, commit=True)
     
+    # upload the model to wandb
+    wandb.save(path.join(save_folder, '*.pt'))
+    
     # Finalize run
     wandb.finish()
     return None
