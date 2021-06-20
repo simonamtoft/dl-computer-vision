@@ -171,7 +171,7 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
             logging['lr_d'] = d_sched.get_lr()[0]
 
         # Make a visualization each epoch (logged to wandb)
-        visualize_train(im_loss_1, im_loss_2, g_h2z, g_z2h, d_h, d_z, x_h, x_z, glw, plotting)
+        visualize_train(im_loss_1, im_loss_2, g_h2z, g_z2h, d_h, d_z, x_h, x_z, plotting)
         
         # Save state every epoch
         save_state(g_h2z, g_z2h, d_h, d_z)
@@ -195,7 +195,7 @@ def save_state(g_h2z, g_z2h, d_h, d_z):
     return None
 
 
-def visualize_train(im_loss_1, im_loss_2, g_h2z, g_z2h, d_h, d_z, x_h, x_z, glw, plotting=False):
+def visualize_train(im_loss_1, im_loss_2, g_h2z, g_z2h, d_h, d_z, x_h, x_z, plotting=False):
     # Func to fix images before imshow
     def fix_img(x):
         return np.swapaxes(np.swapaxes((x.cpu().numpy() + 1)/2, 0, 2), 0, 1)
@@ -220,12 +220,12 @@ def visualize_train(im_loss_1, im_loss_2, g_h2z, g_z2h, d_h, d_z, x_h, x_z, glw,
         h_iden = g_z2h(x_h)
         
         # Compute losses
-        z_fake_loss = glw[0]*fake_loss(d_z(z_fake)).cpu().numpy()
-        h_fake_loss = glw[0]*fake_loss(d_h(h_fake)).cpu().numpy()
-        z_rec_loss = glw[1]*im_loss_1(x_z, z_rec).cpu().numpy()
-        h_rec_loss = glw[1]*im_loss_1(x_h, h_rec).cpu().numpy()
-        z_iden_loss = glw[2]*im_loss_2(x_z, z_iden).cpu().numpy()
-        h_iden_loss = glw[2]*im_loss_2(x_h, h_iden).cpu().numpy()
+        z_fake_loss = fake_loss(d_z(z_fake)).cpu().numpy()  # * glw[0]
+        h_fake_loss = fake_loss(d_h(h_fake)).cpu().numpy()  # * glw[0]
+        z_rec_loss = im_loss_1(x_z, z_rec).cpu().numpy()    # *glw[1]
+        h_rec_loss = im_loss_1(x_h, h_rec).cpu().numpy()    # *glw[1]
+        z_iden_loss = im_loss_2(x_z, z_iden).cpu().numpy()  # *glw[2]
+        h_iden_loss = im_loss_2(x_h, h_iden).cpu().numpy()  # *glw[2]
 
     # Plot images
     n_rows = len(idx)
