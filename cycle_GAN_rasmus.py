@@ -19,7 +19,14 @@ config = {
     'n_blocks': 12,
     'relu_val': 0.2,
     'img_loss': ['l2', 'l1'], # cycle, identity 
-    'buffer_size': 10,
+    'buf_size': 10,
+    'lr_decay': {
+        'offset': 0,
+        'delay': 20,
+        'n_epochs': 100
+    },
+    'affine': True,
+    'resize': False,
 }
 
 # Instantiate models
@@ -28,17 +35,23 @@ g_z2h = Generator(config).to(device)
 d_h = Discriminator(config).to(device)
 d_z = Discriminator(config).to(device)
 
+# Create transforms
+transforms_list = [ToTensor()]
+if config['resize']:
+    transforms_list.append(
+        Resize((128, 128))
+    )
+test_transform = Compose(transforms_list)
+if config['affine']:
+    transforms_list.extend([
+        Pad(50, padding_mode='reflect'),
+        RandomAffine(degrees=7, translate=(0.1, 0.1), scale=(1, 1.1)),
+        CenterCrop(256),
+        RandomHorizontalFlip(p=0.5),
+    ])
+train_transform = Compose(transforms_list)
+
 # Get data
-test_transform = transforms.Compose([transforms.Resize((128,128)),transforms.ToTensor()])
-
-train_transform = transforms.Compose([
-                    transforms.Pad(50, padding_mode='reflect'),
-                    transforms.RandomAffine(degrees=7,translate=(0.1,0.1),scale=(1,1.1)),
-                    transforms.Resize((128,128)),
-                    transforms.RandomHorizontalFlip(p=0.5),
-                    transforms.ToTensor()])
-
-
 z_train_loader = DataLoader(ZEBRAS(dataset="train", transform=train_transform), batch_size=config["batch_size"], num_workers=4)
 h_train_loader = DataLoader(HORSES(dataset="train", transform=train_transform), batch_size=config["batch_size"], num_workers=4)
 z_test_loader = DataLoader(ZEBRAS(dataset="test", transform=test_transform), batch_size=config["batch_size"], num_workers=4)
