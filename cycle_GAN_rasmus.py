@@ -36,20 +36,20 @@ d_h = Discriminator(config).to(device)
 d_z = Discriminator(config).to(device)
 
 # Create transforms
-transforms_list = [ToTensor()]
+transforms_list = [transforms.ToTensor()]
 if config['resize']:
     transforms_list.append(
-        Resize((128, 128))
+        transforms.Resize((128, 128))
     )
-test_transform = Compose(transforms_list)
+test_transform = transforms.Compose(transforms_list)
 if config['affine']:
     transforms_list.extend([
-        Pad(50, padding_mode='reflect'),
-        RandomAffine(degrees=7, translate=(0.1, 0.1), scale=(1, 1.1)),
-        CenterCrop(256),
-        RandomHorizontalFlip(p=0.5),
+        transforms.Pad(50, padding_mode='reflect'),
+        transforms.RandomAffine(degrees=7, translate=(0.1, 0.1), scale=(1, 1.1)),
+        transforms.CenterCrop(256),
+        transforms.RandomHorizontalFlip(p=0.5),
     ])
-train_transform = Compose(transforms_list)
+train_transform = transforms.Compose(transforms_list)
 
 # Get data
 z_train_loader = DataLoader(ZEBRAS(dataset="train", transform=train_transform), batch_size=config["batch_size"], num_workers=4)
