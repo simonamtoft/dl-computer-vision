@@ -155,7 +155,7 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
 
             # Update generator
             g_opt.zero_grad()
-            g_l_fool = (GAN_loss.generator(d_h, 0, x_h_fake)+GAN_loss.generator(d_z, 0, x_z_fake))* glw[0]
+            g_l_fool = (GAN_loss.generator(d_h, 0, x_h_fake) + GAN_loss.generator(d_z, 0, x_z_fake)) * glw[0]
             #g_l_fool = (real_loss(d_h(x_h_fake)) + real_loss(d_z(x_z_fake))) * glw[0]
             g_l_cycle = (im_loss_1(x_h, x_h_rec) + im_loss_1(x_z, x_z_rec)) * glw[1]
             g_l_iden = (im_loss_2(g_h2z(x_z), x_z) + im_loss_2(g_z2h(x_h), x_h)) * glw[2]
@@ -227,8 +227,8 @@ def visualize_train(im_loss_1, im_loss_2, GAN_loss, g_h2z, g_z2h, d_h, d_z, x_h,
         h_iden = g_z2h(x_h)
         
         # Compute losses
-        z_fake_loss = GAN_loss.generator(d_z(z_fake)).cpu().numpy()  # * glw[0]
-        h_fake_loss = GAN_loss.generator(d_h(h_fake)).cpu().numpy()  # * glw[0]
+        z_fake_loss = GAN_loss.generator(d_z, 0, z_fake).cpu().numpy()  # * glw[0]
+        h_fake_loss = GAN_loss.generator(d_h, 0, h_fake).cpu().numpy()  # * glw[0]
         z_rec_loss = im_loss_1(x_z, z_rec).cpu().numpy()    # *glw[1]
         h_rec_loss = im_loss_1(x_h, h_rec).cpu().numpy()    # *glw[1]
         z_iden_loss = im_loss_2(x_z, z_iden).cpu().numpy()  # *glw[2]
