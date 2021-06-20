@@ -11,22 +11,23 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # Setup training config
 config = {
     'batch_size': 16,
-    'epochs': 300,
+    'epochs': 100,
     'lr_d': 4*1e-4,
     'lr_g': 2*1e-4,
+    'loss_func': ['lsgan',[0,1,1]], # 'lsgan' or 'minimax'
     'g_loss_weight': [1, 10, 5],
-    'n_features': 128,
-    'n_blocks': 12,
+    'n_features': 64,
+    'n_blocks': 9,
     'relu_val': 0.2,
-    'img_loss': ['l2', 'l1'], # cycle, identity 
-    'buf_size': 10,
+    'img_loss': ['l1', 'l1'], # cycle, identity 
+    'buf_size': 0,
     'lr_decay': {
         'offset': 0,
         'delay': 20,
         'n_epochs': 100
     },
     'affine': True,
-    'resize': False,
+    'resize': True,
 }
 
 # Instantiate models
@@ -42,13 +43,18 @@ if config['resize']:
         transforms.Resize((128, 128))
     )
 test_transform = transforms.Compose(transforms_list)
+transforms_list = [transforms.ToTensor()]
 if config['affine']:
     transforms_list.extend([
-        transforms.Pad(50, padding_mode='reflect'),
+        transforms.Pad(10, padding_mode='reflect'),
         transforms.RandomAffine(degrees=7, translate=(0.1, 0.1), scale=(1, 1.1)),
         transforms.CenterCrop(256),
         transforms.RandomHorizontalFlip(p=0.5),
     ])
+if config['resize']:
+    transforms_list.append(
+        transforms.Resize((128, 128))
+    )
 train_transform = transforms.Compose(transforms_list)
 
 # Get data

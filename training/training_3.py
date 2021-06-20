@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from IPython import display
 import wandb
 
-from helpers import gan_im_loss, ImageBuffer
+from helpers import gan_im_loss, ImageBuffer, gan_loss_func
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 save_folder = 'saved_states'
@@ -36,6 +36,9 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
                                             generator optimizer
                         'lr_d'          :   Learning rate for the 
                                             discriminator optimizer
+                        'loss_func'     :   GAN-loss function used.
+                                            can be either ['lsgan',[a,b,c]]
+                                            or ['minimax',-1].
                         'epochs'        :   Number of epochs to train
                         'img_loss'      :   Specify how to compute the 
                                             image losses as list of 
@@ -63,6 +66,7 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
 
     # Define image losses
     im_loss_1, im_loss_2  = gan_im_loss(config)
+    GAN_loss = gan_loss_func(config)
     glw = config['g_loss_weight']
 
     # Initialize wandb run
@@ -140,16 +144,19 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
 
             # Update discriminator 
             d_opt.zero_grad()
-            d_l = real_loss(d_h(x_h))
-            d_l += fake_loss(d_h(x_h_fake_t.detach()))
-            d_l += real_loss(d_z(x_z))
-            d_l += fake_loss(d_z(x_z_fake_t.detach()))
+            d_l = GAN_loss.discriminator(d_h, x_h, x_h_fake_t)
+            #d_l = real_loss(d_h(x_h))
+            #d_l += fake_loss(d_h(x_h_fake_t.detach()))
+            d_l += GAN_loss.discriminator(d_z, x_z, x_z_fake_t)
+            #d_l += real_loss(d_z(x_z))
+            #d_l += fake_loss(d_z(x_z_fake_t.detach()))
             d_l.backward()
             d_opt.step()
 
             # Update generator
             g_opt.zero_grad()
-            g_l_fool = (real_loss(d_h(x_h_fake)) + real_loss(d_z(x_z_fake))) * glw[0]
+            g_l_fool = (GAN_loss.generator(d_h, 0, x_h_fake)+GAN_loss.generator(d_z, 0, x_z_fake))* glw[0]
+            #g_l_fool = (real_loss(d_h(x_h_fake)) + real_loss(d_z(x_z_fake))) * glw[0]
             g_l_cycle = (im_loss_1(x_h, x_h_rec) + im_loss_1(x_z, x_z_rec)) * glw[1]
             g_l_iden = (im_loss_2(g_h2z(x_z), x_z) + im_loss_2(g_z2h(x_h), x_h)) * glw[2]
             g_l = g_l_fool + g_l_cycle + g_l_iden
@@ -171,7 +178,7 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
             logging['lr_d'] = d_sched.get_lr()[0]
 
         # Make a visualization each epoch (logged to wandb)
-        visualize_train(im_loss_1, im_loss_2, g_h2z, g_z2h, d_h, d_z, x_h, x_z, plotting)
+        visualize_train(im_loss_1, im_loss_2, GAN_loss, g_h2z, g_z2h, d_h, d_z, x_h, x_z, plotting)
         
         # Save state every epoch
         save_state(g_h2z, g_z2h, d_h, d_z)
@@ -195,7 +202,7 @@ def save_state(g_h2z, g_z2h, d_h, d_z):
     return None
 
 
-def visualize_train(im_loss_1, im_loss_2, g_h2z, g_z2h, d_h, d_z, x_h, x_z, plotting=False):
+def visualize_train(im_loss_1, im_loss_2, GAN_loss, g_h2z, g_z2h, d_h, d_z, x_h, x_z, plotting=False):
     # Func to fix images before imshow
     def fix_img(x):
         return np.swapaxes(np.swapaxes((x.cpu().numpy() + 1)/2, 0, 2), 0, 1)
@@ -220,8 +227,8 @@ def visualize_train(im_loss_1, im_loss_2, g_h2z, g_z2h, d_h, d_z, x_h, x_z, plot
         h_iden = g_z2h(x_h)
         
         # Compute losses
-        z_fake_loss = fake_loss(d_z(z_fake)).cpu().numpy()  # * glw[0]
-        h_fake_loss = fake_loss(d_h(h_fake)).cpu().numpy()  # * glw[0]
+        z_fake_loss = GAN_loss.generator(d_z(z_fake)).cpu().numpy()  # * glw[0]
+        h_fake_loss = GAN_loss.generator(d_h(h_fake)).cpu().numpy()  # * glw[0]
         z_rec_loss = im_loss_1(x_z, z_rec).cpu().numpy()    # *glw[1]
         h_rec_loss = im_loss_1(x_h, h_rec).cpu().numpy()    # *glw[1]
         z_iden_loss = im_loss_2(x_z, z_iden).cpu().numpy()  # *glw[2]

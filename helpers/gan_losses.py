@@ -38,9 +38,13 @@ class MinimaxLoss(nn.Module):
         super(MinimaxLoss, self)
 
     def discriminator(self, d, x_real, x_fake):
-        E_real = F.logsigmoid(d(x_real))
-        E_fake = F.logsigmoid(-d(x_fake.detach()))
-        d_loss = -torch.mean(E_real + E_fake)
+        y_real = d(x_real)
+        y_fake = -d(x_fake.detach())
+        E_real = F.logsigmoid(y_real)
+        E_fake = F.logsigmoid(y_fake)
+
+        d_loss = -(torch.mean(E_real) + torch.mean(E_fake))
+        #d_loss = -torch.mean(E_real + E_fake)
         return d_loss
 
     def generator(self, d, x_real, x_fake):
@@ -54,6 +58,8 @@ def gan_loss_func(config):
         return MinimaxLoss()
     elif loss_name == 'lsgan':
         return LSGANLoss(config['loss_func'][1])
+    elif loss_name == 'wgan':
+        return WGANLoss()
     else:
         raise Exception(f"Specified loss function '{loss_name}' not implemented.")
 
