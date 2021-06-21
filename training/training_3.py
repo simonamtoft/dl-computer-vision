@@ -250,11 +250,11 @@ def visualize_train(im_loss_1, im_loss_2, GAN_loss, g_h2z, g_z2h, d_h, d_z, x_h,
     
         ax[2*i,2].imshow(fix_img(h_rec[idx[i]]))
         ax[2*i,2].axis('off')
-        ax[2*i,2].set_title(f'Recovered, d={np.round(h_rec_loss, 2)}')
+        ax[2*i,2].set_title('Recovered, d={:.2f}'.format(h_rec_loss))
         
         ax[2*i,3].imshow(fix_img(h_iden[idx[i]]))
         ax[2*i,3].axis('off')
-        ax[2*i,3].set_title(f'Identity, d={np.round(h_iden_loss, 2)}')
+        ax[2*i,3].set_title('Identity, d={:.2f}'.format(h_iden_loss))
 
         # Zebras
         ax[2*i+1,0].imshow(fix_img(x_z[idx[i]]))
@@ -267,11 +267,11 @@ def visualize_train(im_loss_1, im_loss_2, GAN_loss, g_h2z, g_z2h, d_h, d_z, x_h,
 
         ax[2*i+1,2].imshow(fix_img(z_rec[idx[i]]))
         ax[2*i+1,2].axis('off')
-        ax[2*i+1,2].set_title(f'Recovered, d={np.round(z_rec_loss, 2)}')
+        ax[2*i+1,2].set_title('Recovered, d={:.2f}'.format(z_rec_loss))
 
         ax[2*i+1,3].imshow(fix_img(z_iden[idx[i]]))
         ax[2*i+1,3].axis('off')
-        ax[2*i+1,3].set_title(f'Identity, d={np.round(z_iden_loss, 2)}')
+        ax[2*i+1,3].set_title('Identity, d={:.2f}'.format(z_iden_loss))
 
     f.savefig('log_image.png', transparent=True, bbox_inches='tight')
     if plotting == True:
