@@ -143,9 +143,9 @@ log_image.png
 GAN_LOSS.png
 images_in_batch.png
 GAN_loss_compare.py
-d_h.pt
-d_z.pt
-g_h2z.pt
-g_z2h.pt
+saved_states/d_h.pt
+saved_states/d_z.pt
+saved_states/g_h2z.pt
+saved_states/g_z2h.pt
 
 
