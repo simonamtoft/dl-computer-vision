@@ -1,6 +1,6 @@
 #!/bin/sh
 #BSUB -q gpuv100
-#BSUB -J "Cycle_GAN_minimax"
+#BSUB -J "minimax"
 #BSUB -n 4
 #BSUB -gpu "num=1:mode=exclusive_process"
 #BSUB -W 23:59
@@ -10,7 +10,7 @@
 ##BSUB -N
 ### -- Specify the output and error file. %J is the job-id --
 ### -- -o and -e mean append, -oo and -eo mean overwrite --
-#BSUB -oo cycleGAN_minimax.out
+#BSUB -oo minimax.out
 ##BSUB -eo gpu-%J.err
 # -- end of LSF options --
 
