@@ -11,23 +11,23 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # Setup training config
 config = {
     'batch_size': 16,
-    'epochs': 100,
+    'epochs': 51,
     'lr_d': 4*1e-4,
     'lr_g': 2*1e-4,
-    'loss_func': ['lsgan',[0,1,1]], # 'lsgan' or 'minimax'
-    'g_loss_weight': [1, 10, 5],
+    'loss_func': ['minimax',[0,1,1]], # 'lsgan' or 'minimax'
+    'g_loss_weight': [2, 10, 5],
     'n_features': 64,
     'n_blocks': 9,
     'relu_val': 0.2,
     'img_loss': ['l1', 'l1'], # cycle, identity 
-    'buf_size': 0,
+    'buf_size': 10,
     'lr_decay': {
         'offset': 0,
         'delay': 20,
         'n_epochs': 100
     },
     'affine': True,
-    'resize': True,
+    'resize': 128,
 }
 
 # Instantiate models
@@ -38,11 +38,11 @@ d_z = Discriminator(config).to(device)
 
 # Create transforms
 transforms_list = [transforms.ToTensor()]
-if config['resize']:
-    transforms_list.append(
-        transforms.Resize((128, 128))
-    )
+transforms_list.append(
+    transforms.Resize((config['resize'], config['resize']))
+)
 test_transform = transforms.Compose(transforms_list)
+
 transforms_list = [transforms.ToTensor()]
 if config['affine']:
     transforms_list.extend([
@@ -51,10 +51,9 @@ if config['affine']:
         transforms.CenterCrop(256),
         transforms.RandomHorizontalFlip(p=0.5),
     ])
-if config['resize']:
-    transforms_list.append(
-        transforms.Resize((128, 128))
-    )
+transforms_list.append(
+    transforms.Resize((config['resize'], config['resize']))
+)
 train_transform = transforms.Compose(transforms_list)
 
 # Get data

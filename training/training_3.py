@@ -10,6 +10,9 @@ from helpers import gan_im_loss, ImageBuffer, gan_loss_func
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 save_folder = 'saved_states'
+#save_folder = 'LSGAN001'
+#save_folder = 'LSGAN-110'
+#save_folder = 'MINIMAX'
 
 # Define loss functions as LSGAN
 def real_loss(x):
@@ -182,6 +185,14 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
         
         # Save state every epoch
         save_state(g_h2z, g_z2h, d_h, d_z)
+        #if epoch == 9:
+        #    save_state(g_h2z, g_z2h, d_h, d_z,"10")
+        #elif epoch == 19:
+        #    save_state(g_h2z, g_z2h, d_h, d_z,"20")
+        #elif epoch == 29:
+        #    save_state(g_h2z, g_z2h, d_h, d_z,"30")
+        #elif epoch == 49:
+        #    save_state(g_h2z, g_z2h, d_h, d_z,"50")
 
         # Log losses to wandb
         wandb.log(logging, commit=True)
@@ -194,11 +205,11 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
     return None
 
 
-def save_state(g_h2z, g_z2h, d_h, d_z):
-    torch.save(g_h2z, path.join(save_folder, 'g_h2z.pt'))
-    torch.save(g_z2h, path.join(save_folder, 'g_z2h.pt'))
-    torch.save(d_h, path.join(save_folder, 'd_h.pt'))
-    torch.save(d_z, path.join(save_folder, 'd_z.pt'))
+def save_state(g_h2z, g_z2h, d_h, d_z, epoch=""):
+    torch.save(g_h2z, path.join(save_folder, epoch + "_H2Z.pt"))
+    torch.save(g_z2h, path.join(save_folder, epoch+"_Z2H.pt"))
+    torch.save(d_h, path.join(save_folder, epoch+"_dH.pt"))
+    torch.save(d_z, path.join(save_folder, epoch+"_dZ.pt"))
     return None
 
 
@@ -249,11 +260,13 @@ def visualize_train(im_loss_1, im_loss_2, GAN_loss, g_h2z, g_z2h, d_h, d_z, x_h,
     
         ax[2*i,2].imshow(fix_img(h_rec[idx[i]]))
         ax[2*i,2].axis('off')
-        ax[2*i,2].set_title(f'Recovered, d={np.round(h_rec_loss, 2)}')
+        ax[2*i,2].set_title('Recovered, d={:.2f}'.format(h_rec_loss))
+        #ax[2*i,2].set_title(f'Recovered, d={np.round(h_rec_loss, 2)}')
         
         ax[2*i,3].imshow(fix_img(h_iden[idx[i]]))
         ax[2*i,3].axis('off')
-        ax[2*i,3].set_title(f'Identity, d={np.round(h_iden_loss, 2)}')
+        ax[2*i,3].set_title('Identity, d={:.2f}'.format(h_iden_loss))
+        #ax[2*i,3].set_title(f'Identity, d={np.round(h_iden_loss, 2)}')
 
         # Zebras
         ax[2*i+1,0].imshow(fix_img(x_z[idx[i]]))
@@ -266,11 +279,13 @@ def visualize_train(im_loss_1, im_loss_2, GAN_loss, g_h2z, g_z2h, d_h, d_z, x_h,
 
         ax[2*i+1,2].imshow(fix_img(z_rec[idx[i]]))
         ax[2*i+1,2].axis('off')
-        ax[2*i+1,2].set_title(f'Recovered, d={np.round(z_rec_loss, 2)}')
+        ax[2*i+1,2].set_title('Recovered, d={:.2f}'.format(z_rec_loss))
+        #ax[2*i+1,2].set_title(f'Recovered, d={np.round(z_rec_loss, 2)}')
 
         ax[2*i+1,3].imshow(fix_img(z_iden[idx[i]]))
         ax[2*i+1,3].axis('off')
-        ax[2*i+1,3].set_title(f'Identity, d={np.round(z_iden_loss, 2)}')
+        ax[2*i+1,3].set_title('Identity, d={:.2f}'.format(z_iden_loss))
+        #ax[2*i+1,3].set_title(f'Identity, d={np.round(z_iden_loss, 2)}')
 
     f.savefig('log_image.png', transparent=True, bbox_inches='tight')
     if plotting == True:
