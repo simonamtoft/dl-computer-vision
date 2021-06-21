@@ -61,6 +61,7 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
         h_dl    :   A Dataloader of the horse training data
         p_name  :   A string, determining the name of the project on wandb
     """
+    print(f"\nTraining will run on device: {device}")
     print(f"\nStarting training with config:")
     print(json.dumps(config, sort_keys=False, indent=4))
 
