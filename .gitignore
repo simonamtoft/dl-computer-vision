@@ -143,3 +143,4 @@ PH2_Dataset_images
 *.out
 horse2zebra.zip
 cycle_gan.py
+log_image.png
