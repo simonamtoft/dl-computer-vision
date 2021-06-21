@@ -144,3 +144,6 @@ PH2_Dataset_images
 horse2zebra.zip
 cycle_gan.py
 log_image.png
+GAN_LOSS.png
+images_in_batch.png
+GAN_loss_compare.py
