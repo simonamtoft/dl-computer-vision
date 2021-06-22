@@ -7,8 +7,9 @@ from data import HORSES, ZEBRAS
 from pytorch_fid.fid_score import calculate_fid_given_paths
 
 batch_size = 64
-save_dest = "generated_data"
-load_path = "saved_states"
+model_folder = "baseline_256"
+save_dest = os.path.join("generated_data", model_folder)
+load_path = os.path.join("saved_states", model_folder)
 
 if torch.cuda.is_available():
     print("The code will run on GPU.")
