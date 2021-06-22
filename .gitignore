@@ -143,7 +143,14 @@ log_image.png
 GAN_LOSS.png
 images_in_batch.png
 GAN_loss_compare.py
+<<<<<<< HEAD
 generated_data/
+=======
+saved_states/d_h.pt
+saved_states/d_z.pt
+saved_states/g_h2z.pt
+saved_states/g_z2h.pt
+>>>>>>> b9d70ef7c688de7030f4ceef6dcae40024894a4f
 
 *.pt
 
