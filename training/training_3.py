@@ -150,11 +150,7 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
             # Update discriminator 
             d_opt.zero_grad()
             d_l = GAN_loss.discriminator(d_h, x_h, x_h_fake_t)
-            #d_l = real_loss(d_h(x_h))
-            #d_l += fake_loss(d_h(x_h_fake_t.detach()))
             d_l += GAN_loss.discriminator(d_z, x_z, x_z_fake_t)
-            #d_l += real_loss(d_z(x_z))
-            #d_l += fake_loss(d_z(x_z_fake_t.detach()))
             d_l.backward()
 
             # Gradient clipping if WGAN loss is used
@@ -168,7 +164,6 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
             # Update generator
             g_opt.zero_grad()
             g_l_fool = (GAN_loss.generator(d_h, 0, x_h_fake) + GAN_loss.generator(d_z, 0, x_z_fake)) * glw[0]
-            #g_l_fool = (real_loss(d_h(x_h_fake)) + real_loss(d_z(x_z_fake))) * glw[0]
             g_l_cycle = (im_loss_1(x_h, x_h_rec) + im_loss_1(x_z, x_z_rec)) * glw[1]
             g_l_iden = (im_loss_2(g_h2z(x_z), x_z) + im_loss_2(g_z2h(x_h), x_h)) * glw[2]
             g_l = g_l_fool + g_l_cycle + g_l_iden
@@ -228,10 +223,12 @@ def train_cycle_gan(config, g_h2z, g_z2h, d_h, d_z, z_dl, h_dl, p_name='tmp', pl
 
 
 def save_state(g_h2z, g_z2h, d_h, d_z, epoch=""):
-    torch.save(g_h2z, path.join(save_folder, epoch + "_H2Z.pt"))
-    torch.save(g_z2h, path.join(save_folder, epoch+"_Z2H.pt"))
-    torch.save(d_h, path.join(save_folder, epoch+"_dH.pt"))
-    torch.save(d_z, path.join(save_folder, epoch+"_dZ.pt"))
+    if epoch != "":
+        epoch += "_"
+    torch.save(g_h2z, path.join(save_folder, epoch + "g_h2z.pt"))
+    torch.save(g_z2h, path.join(save_folder, epoch + "g_z2h.pt"))
+    torch.save(d_h, path.join(save_folder, epoch + "d_h.pt"))
+    torch.save(d_z, path.join(save_folder, epoch + "d_z.pt"))
     return None
 
 
